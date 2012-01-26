@@ -1,0 +1,17 @@
+<?
+  include "tpl/cms/_header.php";
+
+if (count($_TPL['LISTARTICLE'])){
+  foreach($_TPL['LISTARTICLE'] as $row){
+?>
+
+    <div><a href="/?id=<?=$row['id']?>"><b><?=$row['name']?></b></a></div>
+   <?=$row['short_note']?>
+
+ 
+
+<?  }
+}
+
+  include "tpl/cms/_footer.php";
+?>

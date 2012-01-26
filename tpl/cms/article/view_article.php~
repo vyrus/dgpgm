@@ -1,0 +1,24 @@
+<?
+  include "tpl/cms/_header.php";
+?>
+
+<div class="content-topic"><span>&nbsp;<?=$_TPL['ROW']['name']?></span></div>
+  
+<div class="cntnt-container">
+<?=$_TPL['ROW']['content']?>
+
+<?
+if(!empty($_TPL['LISTARTICLE'])){
+    foreach($_TPL['LISTARTICLE'] as $ROW) {
+    ?><li><a href="/article<?=$ROW['id']?>"><?=$ROW['name']?></a></li>
+    <?
+    }
+}
+?>
+
+</div>
+<div class="clr"></div>
+
+<?
+  include "tpl/cms/_footer.php";
+?>

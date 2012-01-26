@@ -1,0 +1,217 @@
+/* Global style */
+body {font-family: Tahoma, Arial; font-size: 100%;}
+a {color: #008CD2;}
+a:hover {color: #00549C;}
+
+/* Authorization form */
+div.bx-auth-form {margin:16px 0px 16px 0px; padding:8px; width:500px; border:1px solid #B2BCD9; background-color:#F9FAFD; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;}
+div.bx-auth-form div.bx-auth-header {font-size:90%; font-weight:bold; padding:0px 3px 8px 3px; margin:0px; background-image:url(../images/dots_auth.gif); background-position:left bottom; background-repeat:repeat-x;}
+div.bx-auth-form div.bx-auth-footer {padding:4px 3px 0px 3px; margin:0px; background-image:url(../images/dots_auth.gif); background-position:left top; background-repeat:repeat-x;}
+div.bx-auth-form div.bx-auth-footer p {font-size:90%; margin:6px 0px 0px 0px;}
+div.bx-auth-form div.bx-auth-picture {float:left; width:105px; height:120px; margin:0px; background-image:url(../images/auth_pict.gif); background-position:center; background-repeat:no-repeat;}
+div.bx-auth-form div.bx-auth-table {float:left; margin:20px 10px 20px 10px;}
+div.bx-auth-form td {font-size:90%; padding:3px;}
+div.bx-auth-form td.bx-auth-label {text-align:right;}
+div.bx-auth-form label.bx-label {color:#3E65B2; font-size:70%; text-decoration:none; line-height:normal;}
+div.bx-auth-form input.bx-auth-input-text {width:150px;}
+
+/* Menu Style */
+div#admin_left_block ul.sample-menu {padding:0;margin:10px 15px;}
+div#admin_left_block ul.sample-menu li {padding:2px 0;margin:0;list-style:none;}
+div#admin_left_block ul.sample-menu li ul {padding:0;margin:0 0 0 15px;}
+div#admin_left_block ul#my-menu a {padding-left:8px; font-size: 85%;}
+div#admin_left_block ul#my-menu a.collapsed {background:url(../images/collapsed.gif) left 6px no-repeat;}
+div#admin_left_block ul#my-menu a.expanded {background:url(../images/expanded.gif) left 6px no-repeat;}
+
+/* Different style */
+div#header div.quit {float: right; margin-left: 15px; font-weight: bold; font-size: 80%;}
+div#header div.quit a {text-decoration: underline;color: #B2BCD9;}
+div#header div.quit a:hover {text-decoration: none; color: #9ca5bd;}
+div#admin_left_block {float: left; width: 250px; position: absolute; left: 0;}
+div#body {float: left; margin-left: 250px;}
+div.navi {font-size: 70%;}
+
+/* Table class table style*/
+table.table {width:100%; padding:5px;}
+table.table th {padding: 5px 10px 5px 10px; color:#999; text-align: left; background: rgb(224, 227, 235); border:1px solid rgb(224, 227, 235); font-size: 12px;}
+table.table td {border:1px solid rgb(224, 227, 235); padding: 2px 3px 2px 3px; font-size: 12px; vertical-align: top;}
+
+/* Стили для jQuery UI Datepicker */
+#datepicker_div, .datepicker_inline {
+	font-family: "Trebuchet MS", Tahoma, Verdana, Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	padding: 0;
+	margin: 0;
+	background: #DDD;
+	width: 185px;
+}
+#datepicker_div {
+	display: none;
+	border: 1px solid #FF9900;
+	z-index: 10;
+}
+.datepicker_inline {
+	float: left;
+	display: block;
+	border: 0;
+}
+.datepicker_dialog {
+	padding: 5px !important;
+	border: 4px ridge #DDD !important;
+}
+button.datepicker_trigger {
+	width: 25px;
+}
+img.datepicker_trigger {
+	margin: 2px;
+	vertical-align: middle;
+}
+.datepicker_prompt {
+	float: left;
+	padding: 2px;
+	background: #DDD;
+	color: #000;
+}
+*html .datepicker_prompt {
+	width: 185px;
+}
+.datepicker_control, .datepicker_links, .datepicker_header, .datepicker {
+	clear: both;
+	float: left;
+	width: 100%;
+	color: #FFF;
+}
+.datepicker_control {
+	background: #FF9900;
+	padding: 2px 0px;
+}
+.datepicker_links {
+	background: #E0F4D7;
+	padding: 2px 0px;
+}
+.datepicker_control, .datepicker_links {
+	font-weight: bold;
+	font-size: 80%;
+	letter-spacing: 1px;
+}
+.datepicker_links label {
+	padding: 2px 5px;
+	color: #888;
+}
+.datepicker_clear, .datepicker_prev {
+	float: left;
+	width: 34%;
+}
+.datepicker_current {
+	float: left;
+	width: 30%;
+	text-align: center;
+}
+.datepicker_close, .datepicker_next {
+	float: right;
+	width: 34%;
+	text-align: right;
+}
+.datepicker_header {
+	padding: 1px 0 3px;
+	background: #83C948;
+	text-align: center;
+	font-weight: bold;
+	height: 1.3em;
+}
+.datepicker_header select {
+	background: #83C948;
+	color: #000;
+	border: 0px;
+	font-weight: bold;
+}
+.datepicker {
+	background: #CCC;
+	text-align: center;
+	font-size: 100%;
+}
+.datepicker a {
+	display: block;
+	width: 100%;
+}
+.datepicker .datepicker_titleRow {
+	background: #B1DB87;
+	color: #000;
+}
+.datepicker .datepicker_daysRow {
+	background: #FFF;
+	color: #666;
+}
+.datepicker_weekCol {
+	background: #B1DB87;
+	color: #000;
+}
+.datepicker .datepicker_daysCell {
+	color: #000;
+	border: 1px solid #DDD;
+}
+#datepicker .datepicker_daysCell a {
+	display: block;
+}
+.datepicker .datepicker_weekEndCell {
+	background: #E0F4D7;
+}
+.datepicker .datepicker_daysCellOver {
+	background: #FFF;
+	border: 1px solid #777;
+}
+.datepicker .datepicker_unselectable {
+	color: #888;
+}
+.datepicker_today {
+	background: #B1DB87 !important;
+}
+.datepicker_currentDay {
+	background: #83C948 !important;
+}
+#datepicker_div a, .datepicker_inline a {
+	cursor: pointer;
+	margin: 0;
+	padding: 0;
+	background: none;
+	color: #000;
+}
+.datepicker_inline .datepicker_links a {
+	padding: 0 5px !important;
+}
+.datepicker_control a, .datepicker_links a {
+	padding: 2px 5px !important;
+	color: #000 !important;
+}
+.datepicker_titleRow a {
+	color: #000 !important;
+}
+.datepicker_control a:hover {
+	background: #FDD !important;
+	color: #333 !important;
+}
+.datepicker_links a:hover, .datepicker_titleRow a:hover {
+	background: #FFF !important;
+	color: #333 !important;
+}
+.datepicker_multi .datepicker {
+	border: 1px solid #83C948;
+}
+.datepicker_oneMonth {
+	float: left;
+	width: 185px;
+}
+.datepicker_newRow {
+	clear: left;
+}
+.datepicker_cover {
+	display: none;
+	display/**/: block;
+	position: absolute;
+	z-index: -1;
+	filter: mask();
+	top: -4px;
+	left: -4px;
+	width: 193px;
+	height: 200px;
+}
