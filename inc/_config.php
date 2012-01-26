@@ -7,7 +7,7 @@
 
   $sql_host='localhost';
   $sql_user='root';
-  $sql_password='GhjtrNYfi*';
+  $sql_password='';
   $sql_db='dgpgm'; 
   
   $db=& new MysqlDB();
