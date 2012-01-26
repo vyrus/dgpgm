@@ -340,15 +340,21 @@ function makeCombobox(containerId,diapasonArr,selected,classNm,year)
     dojo.connect(select, "onchange", remakeRestCombos);
     if (typeof diapasonArr === "object")
     {
-        dojo.forEach(diapasonArr, function(node,index,arr){
-            if (node==selected) {sel = true;} else {sel = false;}
-            //dojo.create("option",{"value":node,"text":monthName(node), "selected":sel},select,"first");
-            select.add(dojo.create("option",{"value":node,"innerHTML":monthName(node), "selected":sel}));
+        dojo.forEach(diapasonArr, function(node, index, arr){
+            var is_selected = (node == selected)
+            dojo.create("option", {
+                "value"    : node,
+                "innerHTML": monthName(node),
+                "selected" : is_selected
+            }, select, "last")
         })
     } else
     {
-        //dojo.create("option",{"value":diapasonArr,"text":monthName(diapasonArr),"selected":true},select,"first");
-        select.add(dojo.create("option",{"value":diapasonArr,"innerHTML":monthName(diapasonArr),"selected":true}))
+        dojo.create("option", {
+            "value"    : diapasonArr,
+            "innerHTML": monthName(diapasonArr),
+            "selected" : true
+        }, select, "first")
     }
 }
 
