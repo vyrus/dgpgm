@@ -1,0 +1,76 @@
+<?
+
+ class ManagerSearch{
+       var $db=false;
+       var $limit=10;
+      function ManagerSearch(&$db){
+ 		$this->db=$db;
+      }
+
+ 		function work(){
+ 			global $_TPL;
+           $search=$_GET['s'];
+
+           $tmp = $this->resultSearch($search);
+
+           $_TPL['LISTRESULT']=$tmp['data'];
+    		$_TPL['PAGES']='';
+			for($i=1; $i<=$tmp['cnt']/$this->limit;$i++){
+				$link=preg_replace("#(\/page_\d+\/)#", "/page_$i/", $_SERVER['REQUEST_URI']);
+                                	$_TPL['PAGES'].= (CURRENT_PAGE!=$i)?"[<a href='".$link."'>$i</a>] ":" [$i] ";
+			}
+            include TPL_CMS_SEARCH."result_search.php";
+ 		}
+
+
+		function resultSearch($search){
+	       $stemka = new stemka();
+	       $m_word=$stemka->prepare_index($search);
+           $tmp =  $this->search(array_keys($m_word), CURRENT_PAGE, $this->limit);
+echo "<pre>";
+    print_r($tmp);
+echo "</pre>";
+
+           $r=array();
+           foreach($tmp['data'] as $kl=>$row){
+	           $r[$kl]['id']=$row['id'];
+               $r[$kl]['name']=$row['name'];
+               $r[$kl]['action']=$row['action'];
+               if($row['action']=='article'){
+               	$r[$kl]['note']=substr(preg_replace("#\s+#is", ' ', strip_tags($row['content'])), 0, 300);
+               }elseif ($row['action']=='news'){
+
+               	$r[$kl]['note']=(empty($row['full_news']))?'':substr(preg_replace("#\s+#is", ' ', strip_tags($row['full_news'])), 0, 300);
+               }else{
+               	$r[$kl]['note']='';
+               }
+
+           }
+
+            return array('data'=>$r, 'cnt'=>$tmp['cnt']);
+		}
+
+    	function search($m_word, $page, $limit){
+           $_where = "( concat(' ', c.name) like '% ". implode("%' and concat(' ', c.name) like '% ", $m_word)."%' )";
+// 		   $_where .= " or ( concat(' ', n.short_news) like '% ". implode("%' and concat(' ', n.short_news) like '% ", $m_word)."%' )";
+//  		   $_where .= " or ( concat(' ', n.full_news) like '% ". implode("%' and concat(' ', n.full_news) like '% ", $m_word)."%' )";
+  		   $_where .= " or ( concat(' ', cn.content) like '% ". implode("%' and concat(' ', cn.content) like '% ", $m_word)."%' )";
+
+   			$sql=sql_placeholder('select SQL_CALC_FOUND_ROWS c.id ,c.name, c.action , cn.content   from
+   					?#FK_CATALOGID as c
+   					left join ?#FK_CONTENT as cn on (c.id=cn.id)
+
+   					where '.$_where.' and c.id>1 limit ?,?
+
+ 	  					', ($page-1)*$limit, $limit);
+//           echo $sql."<hr>";
+            $r=$this->db->_array_data($sql);
+		  	return array('data'=>$r, 'cnt'=>$this->db->getFoundRow());
+
+
+		}
+
+
+ }
+
+?>

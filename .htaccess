@@ -1,0 +1,66 @@
+RewriteEngine On
+Options +FollowSymlinks
+RewriteBase /
+RewriteRule  ^editor/uploads/(.*)$  /files/uploads/$1 [R=permanent]
+
+RewriteRule ^reg$ index.php?mod=users&action=reg
+RewriteRule ^logout$ index.php?mod=users&action=logout
+RewriteRule ^login/([a-zA-Z0-9_]+)/activate/([a-z0-9_-]+)$ index.php?mod=users&action=activate&login=$1&code=$2
+RewriteRule ^lk$ index.php?mod=forms&action=form1
+
+RewriteRule ^forms/index$ index.php?mod=forms&action=index
+RewriteRule ^forms/createbid/([0-9]+)/(.*)$ index.php?mod=forms&action=createbid&nt=$1&mr=$2
+RewriteRule ^forms/bid/([0-9]*)$ index.php?mod=forms&action=bid&id=$1
+RewriteRule ^forms/bid/([0-9]+)/infoyur$ index.php?mod=forms&action=infoyur&id=$1
+RewriteRule ^forms/bid/([0-9]+)/infoyurfirst$ index.php?mod=forms&action=infoyurfirst&id=$1
+RewriteRule ^forms/bid/([0-9]+)/infofiz$ index.php?mod=forms&action=infofiz&id=$1
+#RewriteRule ^forms/infoyur$ index.php?mod=forms&action=infoyur
+#RewriteRule ^forms/infofiz$ index.php?mod=forms&action=infofiz
+RewriteRule ^forms/bid/([0-9]+)/tz$ index.php?mod=forms&action=tz&id=$1
+RewriteRule ^forms/bid/([0-9]+)/tablestep$ index.php?mod=forms&action=tablestep&id=$1
+RewriteRule ^forms/bid/([0-9]+)/price$ index.php?mod=forms&action=price&id=$1
+RewriteRule ^forms/bid/([0-9]+)/price/complete$ index.php?mod=forms&action=price&id=$1&complete=complete
+RewriteRule ^forms/bid/([0-9]+)/other-price$ index.php?mod=forms&action=other-price&id=$1
+RewriteRule ^forms/bid/([0-9]+)/print$ index.php?mod=forms&action=print&id=$1
+RewriteRule ^forms/bid/([0-9]+)/printandsubmit$ index.php?mod=forms&action=printandsubmit&id=$1
+
+RewriteRule ^article([0-9]*)$ index.php?mod=article&action=view&id=$1
+RewriteRule ^help$ article73
+RewriteRule ^article([0-9]*)_page([0-9]*)$ index.php?mod=article&action=view&id=$1&page=$2
+RewriteRule ^maps$ index.php?mod=article&action=maps
+
+RewriteRule ^news([0-9]*)$ index.php?mod=news&action=view&id=$1
+RewriteRule ^newspage([0-9]*)$ index.php?mod=news&action=list&page=$1
+
+
+#RewriteRule ^404$ 404.php
+
+RewriteRule ^contact$ svyaz.php
+
+RewriteRule ^search_([0-9]+)_(.*)$ index.php?mod=search&page=$1&s=$2
+
+RewriteRule ^photo_page([0-9]+)$ index.php?mod=photo&action=listphoto&id=5&page=$1 [L]
+RewriteRule ^photo([0-9]+)_page([0-9]+)$ index.php?mod=photo&action=listphoto&id=$1&page=$2 [L]
+RewriteRule ^photo_([0-9]+)$ index.php?mod=photo&action=viewphoto&id=$1& [L]
+RewriteRule ^addphoto$ index.php?mod=photo&action=addphoto [L]
+RewriteRule ^photo$ index.php?mod=photo [L]
+
+RewriteRule ^faqpage([0-9]*)$ index.php?mod=faq&action=list&page=$1
+RewriteRule ^faq_cat([0-9]*)_page([0-9]*)$ index.php?mod=faq&action=listcat&id=$1&page=$2
+RewriteRule ^faq([0-9]*)$ index.php?mod=faq&action=view&id=$1
+RewriteRule ^faqadd$ index.php?mod=faq&action=add
+RewriteRule ^faq_aplove$ index.php?mod=faq&action=add_gut
+
+RewriteRule ^error400$ index.php?mod=error&id=400
+RewriteRule ^error401$ index.php?mod=error&id=401
+RewriteRule ^error403$ index.php?mod=error&id=403
+RewriteRule ^error404$ index.php?mod=error&id=404
+RewriteRule ^error500$ index.php?mod=error&id=500
+
+ErrorDocument 400 /error400
+ErrorDocument 401 /error401
+ErrorDocument 403 /error403
+ErrorDocument 404 /error404
+ErrorDocument 500 /error500
+
+#php_flag display_errors off

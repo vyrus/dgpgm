@@ -1,0 +1,164 @@
+<?
+	include "tpl/admin/header.php";
+
+?>
+   <script type="text/javascript" src="/FCKeditor/fckeditor.js"></script>
+	<form  method="post">
+	<table width=600 align="center">
+		<tr>
+		<td>
+			Нижний Блок
+		</td>
+		</tr>
+  		<tr>
+		<td>
+			<textarea rows="10" cols="60" id="contacts" name="contacts"><?=$_TPL['CONTACTS']?></textarea>
+		</td>
+		</tr>
+  		<tr>
+		<td align="right">
+<input type="submit" value="Сохранить">
+		</td>
+		</tr>
+
+	</table>
+	        <script>
+	 	 var oFCKeditor = new FCKeditor( 'contacts' ) ;
+        oFCKeditor.BasePath = "/FCKeditor/" ;
+        oFCKeditor.ReplaceTextarea() ;
+		oFCKeditor.Height = 600;
+	</script>
+
+	</form>
+
+
+
+
+
+<?
+/*
+?>
+
+<form  method="post">
+	<table width=600 align="center">
+		<tr>
+		<td>
+			Правый блок
+		</td>
+		</tr>
+  		<tr>
+		<td>
+			<textarea rows="10" cols="60" id="rightblock" name="rightblock"><?=$_TPL['RIGHTBLOCK']?></textarea>
+		</td>
+		</tr>
+  		<tr>
+		<td align="right">
+<input type="submit" value="Сохранить">
+		</td>
+		</tr>
+
+	</table>
+	        <script>
+	 	 var oFCKeditor = new FCKeditor( 'rightblock' ) ;
+        oFCKeditor.BasePath = "/FCKeditor/" ;
+        oFCKeditor.ReplaceTextarea() ;
+		oFCKeditor.Height = 600;
+	</script>
+
+	</form>
+	<form  method="post">
+	<table width=600 align="center">
+		<tr>
+		<td>
+			Нижний Блок
+		</td>
+		</tr>
+  		<tr>
+		<td>
+			<textarea rows="10" cols="60" id="contacts" name="contacts"><?=$_TPL['CONTACTS']?></textarea>
+		</td>
+		</tr>
+  		<tr>
+		<td align="right">
+<input type="submit" value="Сохранить">
+		</td>
+		</tr>
+
+	</table>
+	        <script>
+	 	 var oFCKeditor = new FCKeditor( 'contacts' ) ;
+        oFCKeditor.BasePath = "/FCKeditor/" ;
+        oFCKeditor.ReplaceTextarea() ;
+		oFCKeditor.Height = 600;
+	</script>
+
+	</form>
+
+
+
+	<form  method="post">
+	<table width=600 align="center">
+		<tr>
+		<td>
+			Левый нижний
+		</td>
+		</tr>
+  		<tr>
+		<td>
+			<textarea rows="10" cols="60" id="leftbottomblock" name="leftbottomblock"><?=$_TPL['LEFTBOTTOM']?></textarea>
+		</td>
+		</tr>
+  		<tr>
+		<td align="right">
+<input type="submit" value="Сохранить">
+		</td>
+		</tr>
+
+	</table>
+	        <script>
+	 	 var oFCKeditor = new FCKeditor( 'leftbottomblock' ) ;
+        oFCKeditor.BasePath = "/FCKeditor/" ;
+        oFCKeditor.ReplaceTextarea() ;
+		oFCKeditor.Height = 600;
+	</script>
+
+	</form>
+
+
+	<form  method="post">
+	<table width=600 align="center">
+		<tr>
+		<td>
+			Правый нижний
+		</td>
+		</tr>
+  		<tr>
+		<td>
+			<textarea rows="10" cols="60" id="rightbottomblock" name="rightbottomblock"><?=$_TPL['RIGHTBOTTOM']?></textarea>
+		</td>
+		</tr>
+  		<tr>
+		<td align="right">
+<input type="submit" value="Сохранить">
+		</td>
+		</tr>
+
+	</table>
+	        <script>
+	 	 var oFCKeditor = new FCKeditor( 'rightbottomblock' ) ;
+        oFCKeditor.BasePath = "/FCKeditor/" ;
+        oFCKeditor.ReplaceTextarea() ;
+		oFCKeditor.Height = 600;
+	</script>
+
+	</form>
+
+<?
+*/
+?>	
+
+
+<?
+
+	include "tpl/admin/footer.php";
+?>
