@@ -59,8 +59,24 @@ dojo.ready(function()
     );
     /* step handlers: del & add*/
     dojo.query(".del_icon").connect("onclick", deleteStep);
-    dojo.query("[name='addstep']").connect("onclick", addStep);
+    dojo.query("[name='addstep']").forEach(function(node, i, a)
+    {
+        // Находим id последнего select'а последнего этапа данного года
+        var year = node.parentNode.parentNode.parentNode.parentNode.id;
+        var step_list = match_step_num_to_id[year]
+        var postfix = step_list[step_list.length - 1];
+        var id = "#finishmonth_" + postfix + " > select";
 
+        // Выполняем поиск select'а именно при добавлении нового этапа, потому что
+        // в процессе заполнения формы он может быть удалён и заменён на новый
+        dojo.connect(node, "onclick", function() {
+            // Находим select с датой завершения предыдущего этапа
+            var select = dojo.query(id)[0]
+            // Добавляем новый этап и перерисовываем в нём select'ы
+            addStep.call(node, select)
+        });
+    })
+    
     /*tooltips*/
     w_plus_arr = dojo.query(".work_plus");
     var tip = new dijit.Tooltip({
@@ -94,7 +110,7 @@ dojo.ready(function()
     });
     /*eo tooltips*/
 
-    dojo.query("select.step_date").connect("onchange",remakeRestCombos);
+    dojo.query("select.step_date").connect("onchange", remakeRestCombos);
 });
 
 function formWorkContent(wt,wd,handlerName)
@@ -230,7 +246,7 @@ function deleteStep()
     animation.play(); // start it up
 }
 
-function addStep()
+function addStep(prev_step_select)
 {
     var y = this.parentNode.parentNode.parentNode.parentNode.id;
     var ny = y-1+2;
@@ -275,17 +291,24 @@ function addStep()
                     '<input type="submit" name="addstepsdata" value="Сохранить данные об этапе">'+
                     '</form>'+
                     '<hr>';
+                    
+                // добавляем новый этап в список
+                match_step_num_to_id[data.year].push("<?=$bid_id?>_" + data.step_id)
+                    
                 // add attributes
-                dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("year", data.year);
-                dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("year", data.year);
-                dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("step_num", data.step_number);
-                dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("step_num", data.step_number);
+                var info = {year: data.year, step_num: data.step_number}
+                dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("info", info);
+                dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("info", info);
+                
                 // add in DOM
                 newStep = dojo.create("span",{id:"step_<?=$bid_id?>_"+data.step_id, innerHTML:st_box_cont, opacity: 0},refobj,plc);
                 dojo.query(".del_icon").connect("onclick", deleteStep);                /*del handler for step*/
                 dojo.query(".work_plus").connect("onclick",function(){console.info(this.name);bidid_stepid = this.name; cont = formWorkContent('','','newWorkHandler'); myDialog.set("content", cont); myDialog.show();});
                 dojo.fadeIn({ node:newStep }).play();
 
+                // Перерисовываем селекты, основываясь на предыдущем этапе
+                remakeRestCombos.call(prev_step_select);
+                
                 /*tooltips*/
                 st_minus = dojo.query(".del_icon");
                 var tip = new dijit.Tooltip({
@@ -358,49 +381,55 @@ function makeCombobox(containerId,diapasonArr,selected,classNm,year)
     }
 }
 
-function remakeRestCombos(e, that)
+function remakeRestCombos()
 {
-var select;
-if (that) {select = that;} else {select = this;}
-yearA = new dojo.NodeList();
-yearA.push(select.parentNode);
-year = yearA.data('year')[0];
-nextStepNum = yearA.data('step_num')[0]+1;
-curStepFinishMonthVal = parseInt(select.options[select.selectedIndex].value);
+var select = this
+var container = new dojo.NodeList();
+container.push(select.parentNode);
+var info = container.data('info')[0];
 
-var list = match_step_num_to_id[year];
+var nextStepNum = info.step_num + 1;
+var curStepFinishMonthVal = parseInt(select.options[select.selectedIndex].value);
+
+var list = match_step_num_to_id[info.year];
 for (var st=nextStepNum;st<list.length;st++)
 {
     var nextSelStartContainerId = "startmonth_"+list[st]; //id контейнерa селекта стартового месяца в следующем этапе
     nextSelStart = dojo.query("#"+nextSelStartContainerId+" > select")[0]; //селект стартового месяца в следующем этапе
-    makeCombobox(nextSelStartContainerId,curStepFinishMonthVal+1,0,"wellSel",year) // исправляем селект стартового месяца
+    makeCombobox(nextSelStartContainerId,curStepFinishMonthVal+1,0,"wellSel", info.year) // исправляем селект стартового месяца
     //исправляем селект финишгого месяца
     var nextSelFinishContainerId = "finishmonth_"+list[st]; //id контейнерa селекта финишгого месяца в следующем этапе
     nextSelFinish = dojo.query("#"+nextSelFinishContainerId+" > select")[0]; //селект финишгого месяца в следующем этапе
-    vs = nextSelFinish.options[nextSelFinish.selectedIndex].value;
-        range = [];
-        for (var i=curStepFinishMonthVal+1; i<=12;i++)
-        {
-            range.push(i);
-        }
+    
+    if (nextSelFinish.selectedIndex != -1) {
+        vs = nextSelFinish.options[nextSelFinish.selectedIndex].value;
+    } else {
+        vs = undefined;
+    }
+    
+    // Составляем диапазон допустимых значений финишного месяца
+    range = [];
+    for (var i = curStepFinishMonthVal + 2; i <= 12; i++) {
+        range.push(i);
+    }
 
     if (vs) {        //если сохраненное значение селекта финишгого месяца в следующем этапе существует
-        if (vs in range) //и оно лежит в новом допустимом диапазоне, то
+        if (dojo.indexOf(range, vs) != -1) //и оно лежит в новом допустимом диапазоне, то
         {
-            makeCombobox(nextSelFinishContainerId,range,vs,"wellSel",year) // перерисовываем селект с классом "верно" и с выбранным значением,
+            makeCombobox(nextSelFinishContainerId, range, vs, "wellSel", info.year) // перерисовываем селект с классом "верно" и с выбранным значением,
             curStepFinishMonthVal = vs;
             continue; //пошли пересчитывать следующие этапы
         } else //  но оно не лежит в новом допустимом диапазоне, то
         {
-            makeCombobox(nextSelFinishContainerId,range,0,"wrongSel",year) // перерисовываем селект с классом "неверная дата,пересчитайте",
-            dojo.query("td[id="+nextSelFinishContainerId+"] ~ td[id^=finishmonth] > select", "table[id="+year+"]").attr({disabled:true});
+            makeCombobox(nextSelFinishContainerId, range, 0, "wrongSel", info.year) // перерисовываем селект с классом "неверная дата,пересчитайте",
+            dojo.query("td[id="+nextSelFinishContainerId+"] ~ td[id^=finishmonth] > select", "table[id=" + info.year + "]").attr({disabled: true});
             // остальные селекты до конца года перерисовываем пустыми.
             return ;
         }
     } else
     {
-        makeCombobox(nextSelFinishContainerId,range,0,"wellSel",year) // перерисовываем селект с классом "верно" без выбранного значения,
-        dojo.query("td[id="+nextSelFinishContainerId+"] ~ td[id^=finishmonth] > select", "table[id="+year+"]").attr({disabled:true});        // остальные селекты до конца года перерисовываем пустыми.
+        makeCombobox(nextSelFinishContainerId, range, 0, "wellSel", info.year) // перерисовываем селект с классом "верно" без выбранного значения,
+        dojo.query("td[id="+nextSelFinishContainerId+"] ~ td[id^=finishmonth] > select", "table[id=" + info.year + "]").attr({disabled: true});        // остальные селекты до конца года перерисовываем пустыми.
         return ;
     }
 }
@@ -480,6 +509,9 @@ foreach ($TPL['STEPSDATA'] as $step_data)
         $postfix = $bid_id."_".$step_data['id'];
         ?>
         <script>
+            match_step_num_to_id["<?=$year?>"] = [];
+            match_step_num_to_id["<?=$year?>"].push(0); //нулевой элемент пустой тк номера этапов начинаются с 1, а делать для этого ассоциативный не надо
+            
             dojo.ready(function()
             { <?
                 if ($year == $TPL['STARTDATEARR'][0])  // first  year
@@ -501,16 +533,15 @@ foreach ($TPL['STEPSDATA'] as $step_data)
                     }
                     makeCombobox("finishmonth_<?=$postfix?>",range,0,"wellSel",<?=$year?>); <?
                 } ?>
-                match_step_num_to_id["<?=$year?>"] = [];
-                match_step_num_to_id["<?=$year?>"].push(0); //нулевой элемент пустой тк номера этапов начинаются с 1, а делать для этого ассоциативный не надо
             })
         </script>
          <?
     } ?>
-<script> dojo.ready(function()
-{
-    match_step_num_to_id["<?=$year?>"].push("<?=$bid_id?>_<?=$step_data['id']?>");
-}) </script>
+
+<script> 
+match_step_num_to_id["<?=$year?>"].push("<?=$bid_id?>_<?=$step_data['id']?>");
+</script>
+
 <span id="step_<?=$bid_id?>_<?=$step_data['id']?>">
 <h4>Этап <?=$step_data['step_number']?>&nbsp;
     <? if ($step_data['complete']!=1) { ?> <span class="local_red">не все поля этапа заполнены</span> <? } else { ?> <span class="local_grey">все поля этапа заполнены</span> <? } ?>&nbsp;
@@ -543,8 +574,8 @@ foreach ($TPL['STEPSDATA'] as $step_data)
     <script>
     dojo.ready(function()
     {
-        dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("year", <?=$year?>);
-        dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("step_num", <?=$step_data['step_number']?>);
+        var info = {year: <?=$year?>, step_num: <?=$step_data['step_number']?>}
+        dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("info", info);
     })</script>
   </tr>
   <tr>
@@ -553,8 +584,8 @@ foreach ($TPL['STEPSDATA'] as $step_data)
     <script>
     dojo.ready(function()
     {
-        dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("year", <?=$year?>);
-        dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("step_num", <?=$step_data['step_number']?>);
+        var info = {year: <?=$year?>, step_num: <?=$step_data['step_number']?>}                                                            
+        dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("info", info); 
     })</script>
   </tr>
   <tr>
@@ -566,19 +597,6 @@ foreach ($TPL['STEPSDATA'] as $step_data)
 </form>
 <hr></span>
 <? } ?>
-
-<script>
-dojo.ready(function() {
-    dojo.query("[name='addstep']").forEach(function(node,i,a)
-    {
-      var year = node.parentNode.parentNode.parentNode.parentNode.id;
-      var postfix = match_step_num_to_id[year][match_step_num_to_id[year].length-1];
-      var select = dojo.query("#finishmonth_"+postfix+">select")[0];
-      dojo.connect(node,"onclick",function(e){remakeRestCombos(e, select)});
-    });
-})
-</script>
-
 <?
     include TPL_CMS."_footer.php";
 ?>
