@@ -13,6 +13,7 @@ RewriteRule ^forms/createbid/([0-9]+)/(.*)$ index.php?mod=forms&action=createbid
 RewriteRule ^forms/bid/([0-9]*)$ index.php?mod=forms&action=bid&id=$1
 RewriteRule ^forms/bid/([0-9]+)/infoyur$ index.php?mod=forms&action=infoyur&id=$1
 RewriteRule ^forms/bid/([0-9]+)/infoyurfirst$ index.php?mod=forms&action=infoyurfirst&id=$1
+RewriteRule ^forms/bid/([0-9]+)/infofizfirst$ index.php?mod=forms&action=infofizfirst&id=$1
 RewriteRule ^forms/bid/([0-9]+)/infofiz$ index.php?mod=forms&action=infofiz&id=$1
 #RewriteRule ^forms/infoyur$ index.php?mod=forms&action=infoyur
 #RewriteRule ^forms/infofiz$ index.php?mod=forms&action=infofiz

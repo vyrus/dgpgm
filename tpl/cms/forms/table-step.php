@@ -6,7 +6,7 @@ include TPL_CMS."_header.php";
 .claro .dijitDialogTitleBar {
   background-color: #BDC6D5;
 }
-.local_red
+.local_red, .step_date_error
 {
   color: #FF0000;
 }
@@ -19,10 +19,21 @@ include TPL_CMS."_header.php";
     background: none repeat scroll 0 0 #ECEFF2;
     border: 1px solid #ccd5e0;
     border-radius: 8px 8px 8px 8px;
+    -moz-border-radius:8px 8px 8px 8px; /* Firefox 3.6 and earlier */
     color: #000000;
     padding: 0.8em;
     width: 88%;
 }
+
+.work_plus_btn
+{
+    border: 1px solid #ccd5e0;
+    color: #000000;
+    border-radius: 8px 8px 8px 8px;
+    -moz-border-radius:8px 8px 8px 8px; /* Firefox 3.6 and earlier */
+}
+
+
 </style>
 
 <script>
@@ -32,14 +43,14 @@ var cont = '';
 var myDialog;
 var w_edit_links_arr = [];
 
-dojo.require("dojo.NodeList-data");
-
 // Load the Tooltip & Dialog widget class
 dojo.require("dijit.Tooltip");
 dojo.require("dijit.Dialog");
 
 dojo.ready(function()
 {
+    //dojo.query("select.step_date").forEach(function(node,i,a){node.innerHTML = makeCommonSelect();});
+
     dojo.body().className = "claro";
 
     myDialog = new dijit.Dialog({
@@ -60,6 +71,12 @@ dojo.ready(function()
     /* step handlers: del & add*/
     dojo.query(".del_icon").connect("onclick", deleteStep);
     dojo.query("[name='addstep']").connect("onclick", addStep);
+
+    /*check datas*/
+    checkingConnect = dojo.connect(dojo.byId("checkStepDatesBtn"),"onclick",function()
+    {
+      checkStepDates(); dojo.disconnect(checkingConnect);
+    });
 
     /*tooltips*/
     w_plus_arr = dojo.query(".work_plus");
@@ -93,8 +110,6 @@ dojo.ready(function()
         connectId: st_minus
     });
     /*eo tooltips*/
-
-    dojo.query("select.step_date").connect("onchange",remakeRestCombos);
 });
 
 function formWorkContent(wt,wd,handlerName)
@@ -230,6 +245,35 @@ function deleteStep()
     animation.play(); // start it up
 }
 
+function makeCommonSelect()
+{
+    selText = "";
+    for (var i=1;i<=12;i++)
+    {
+        selText += "<option value='"+i+"'>"+monthName(i)+"</option>";
+    }
+    return selText;
+}
+
+function checkStepDates()
+{
+    dojo.xhrPost(
+    {
+        url: '/?mod=forms&action=checkStepDates&bidid=<?=$bid_id?>',
+        handleAs: 'json',
+        load: function (data) {
+            var err;
+            var td;
+            for (var idx in data) {
+                err = data[idx];
+                td = dojo.query("td#" + err[0])[0];
+                dojo.create('div', {class: "step_date_error", innerHTML: err[1]}, td, "last");
+            }
+        },
+        error: function (data) {alert("error ".data);}
+    })
+}
+
 function addStep()
 {
     var y = this.parentNode.parentNode.parentNode.parentNode.id;
@@ -245,6 +289,7 @@ function addStep()
             handleAs: 'json',
             load: function(data){
                 if (data.step_number > 4){alert("Вы пытаетесь создать больше 4 этапов"); return;}
+                selText = makeCommonSelect();
                 st_box_cont = '<h4>Этап '+data.step_number+'&nbsp;<span class="local_red">не все поля этапа заполнены</span>&nbsp; <img border="0" src="/adm/icon/delete_16.png" style="cursor:pointer" class="del_icon"></h4>'+
                     '<form method="post" action="/?mod=forms&action=tablestep&id=<?=$bid_id?>&step_id='+data.step_id+'">'+
                     '<table width="100%">'+
@@ -261,25 +306,20 @@ function addStep()
                       '</tr>'+
                       '<tr>'+
                         '<td>Месяц начала работ</td>'+
-                        '<td id="startmonth_<?=$bid_id?>_'+data.step_id+'"><select class="step_date" name="start_month"></select></td>'+
+                        '<td id="startmonth_<?=$bid_id?>_'+data.step_id+'"><select class="step_date" name="start_month">'+selText+'</select></td>'+
                       '</tr>'+
                       '<tr>'+
                         '<td>Месяц окончания работ</td>'+
-                        '<td id="finishmonth_<?=$bid_id?>_'+data.step_id+'"><select class="step_date" name="finish_month"></select></td>'+
+                        '<td id="finishmonth_<?=$bid_id?>_'+data.step_id+'"><select class="step_date" name="finish_month">'+selText+'</select></td>'+
                       '</tr>'+
                       '<tr>'+
-                        '<td>Стоимость работ, руб</td>'+
+                        '<td>Доля стоимости работ этапа в общей стоимости работ, %</td>'+
                         '<td><input type="text" name="cost" value=""></td>'+
                       '</tr>'+
                     '</table>'+
                     '<input type="submit" name="addstepsdata" value="Сохранить данные об этапе">'+
                     '</form>'+
                     '<hr>';
-                // add attributes
-                dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("year", data.year);
-                dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("year", data.year);
-                dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("step_num", data.step_number);
-                dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("step_num", data.step_number);
                 // add in DOM
                 newStep = dojo.create("span",{id:"step_<?=$bid_id?>_"+data.step_id, innerHTML:st_box_cont, opacity: 0},refobj,plc);
                 dojo.query(".del_icon").connect("onclick", deleteStep);                /*del handler for step*/
@@ -330,132 +370,39 @@ $(document).ready(function () {
 <div class="notice"> В техническом задании Вами заданы следующие сроки выполнения работ:<br />
 <b>начало работ:</b>&nbsp;&nbsp; <?=MonthsName($TPL['STARTDATEARR'][1])?>&nbsp;&nbsp;<?=$TPL['STARTDATEARR'][0]?>г.<br />
 <b>окончание работ:</b>&nbsp;&nbsp;<?=MonthsName($TPL['FINISHDATEARR'][1])?>&nbsp;&nbsp;<?=$TPL['FINISHDATEARR'][0]?>г.<br />
-<b>общая стоимость работ:</b>&nbsp;&nbsp;<?=$TPL['INFO']['price_works_actual']?> тыс.руб.
+<!--<b>общая стоимость работ:</b>&nbsp;&nbsp;<?=$TPL['INFO']['price_works_actual']?> тыс.руб.-->
+<table>
+  <tr>
+    <td id="checking_message">Вы можете в любой момент проверить корректность введенных Вами сроков выполнения работ и распределения стоимости работ&nbsp;&nbsp;&nbsp; <input type="button" value="Проверить" id="checkStepDatesBtn"></td>
+  </tr>
+</table>
 </div>
+
+
 <script>
-function makeCombobox(containerId,diapasonArr,selected,classNm,year)
-{
-    dojo.query("select",dojo.byId(containerId)).forEach(dojo.destroy);
-    var select = dojo.create("select",{"class":[classNm, "step_date"], "year":year},dojo.byId(containerId),"first");
-    dojo.connect(select, "onchange", remakeRestCombos);
-    if (typeof diapasonArr === "object")
-    {
-        dojo.forEach(diapasonArr, function(node,index,arr){
-            if (node==selected) {sel = true;} else {sel = false;}
-            //dojo.create("option",{"value":node,"text":monthName(node), "selected":sel},select,"first");
-            select.add(dojo.create("option",{"value":node,"innerHTML":monthName(node), "selected":sel}));
-        })
-    } else
-    {
-        //dojo.create("option",{"value":diapasonArr,"text":monthName(diapasonArr),"selected":true},select,"first");
-        select.add(dojo.create("option",{"value":diapasonArr,"innerHTML":monthName(diapasonArr),"selected":true}))
-    }
-}
-
-function remakeRestCombos(e, that)
-{
-var select;
-if (that) {select = that;} else {select = this;}
-yearA = new dojo.NodeList();
-yearA.push(select.parentNode);
-year = yearA.data('year')[0];
-nextStepNum = yearA.data('step_num')[0]+1;
-curStepFinishMonthVal = parseInt(select.options[select.selectedIndex].value);
-
-var list = match_step_num_to_id[year];
-for (var st=nextStepNum;st<list.length;st++)
-{
-    var nextSelStartContainerId = "startmonth_"+list[st]; //id контейнерa селекта стартового месяца в следующем этапе
-    nextSelStart = dojo.query("#"+nextSelStartContainerId+" > select")[0]; //селект стартового месяца в следующем этапе
-    makeCombobox(nextSelStartContainerId,curStepFinishMonthVal+1,0,"wellSel",year) // исправляем селект стартового месяца
-    //исправляем селект финишгого месяца
-    var nextSelFinishContainerId = "finishmonth_"+list[st]; //id контейнерa селекта финишгого месяца в следующем этапе
-    nextSelFinish = dojo.query("#"+nextSelFinishContainerId+" > select")[0]; //селект финишгого месяца в следующем этапе
-    vs = nextSelFinish.options[nextSelFinish.selectedIndex].value;
-        range = [];
-        for (var i=curStepFinishMonthVal+1; i<=12;i++)
-        {
-            range.push(i);
-        }
-
-    if (vs) {        //если сохраненное значение селекта финишгого месяца в следующем этапе существует
-        if (vs in range) //и оно лежит в новом допустимом диапазоне, то
-        {
-            makeCombobox(nextSelFinishContainerId,range,vs,"wellSel",year) // перерисовываем селект с классом "верно" и с выбранным значением,
-            curStepFinishMonthVal = vs;
-            continue; //пошли пересчитывать следующие этапы
-        } else //  но оно не лежит в новом допустимом диапазоне, то
-        {
-            makeCombobox(nextSelFinishContainerId,range,0,"wrongSel",year) // перерисовываем селект с классом "неверная дата,пересчитайте",
-            dojo.query("td[id="+nextSelFinishContainerId+"] ~ td[id^=finishmonth] > select", "table[id="+year+"]").attr({disabled:true});
-            // остальные селекты до конца года перерисовываем пустыми.
-            return ;
-        }
-    } else
-    {
-        makeCombobox(nextSelFinishContainerId,range,0,"wellSel",year) // перерисовываем селект с классом "верно" без выбранного значения,
-        dojo.query("td[id="+nextSelFinishContainerId+"] ~ td[id^=finishmonth] > select", "table[id="+year+"]").attr({disabled:true});        // остальные селекты до конца года перерисовываем пустыми.
-        return ;
-    }
-}
-}
-/*
-при условиях, что 1) работы в году всегда начинаются с января 2) нет нерабочих периодов
-
-при загрузке страницы создание селектов с одним опшном, содержащим сохраненное значение, если значения не было, то пустого
-onready:
-remakeRestCombos(curEl) для каждого года
-
-ф проверки лежит ли сохраненное значение окончания этапа в допустимых пределах (зависит от окончания предыдущего этапа)
-ф поиска года и номера этапа в нем по идентификатору
-
-starting_point = $TPL['STARTDATEARR'][1] - 1; // месяц начала работ, указанный в ТЗ
-current_point = starting_point;
-
-    {
-        "startmonth_<?=$bid_id?>_<?=$step_data['id']?>": [current_point+1]
-        "finishmonth_<?=$bid_id?>_<?=$step_data['id']?>": [current_point+2,12]   //onchange: current_point = this, recount all steps of this year
-        ...
-        "startmonth_<?=$bid_id?>_<?=$step_data['id']?>": [current_point+1]
-        "finishmonth_<?=$bid_id?>_<?=$step_data['id']?>": [current_point+2,12]
-    }
-    ...
-current_point = 0;
-    "<?=$year?>": {
-        "startmonth_<?=$bid_id?>_<?=$step_data['id']?>": [current_point+1]
-        "finishmonth_<?=$bid_id?>_<?=$step_data['id']?>": [current_point+2,12]    //onchange: current_point = this, recount all steps of this year
-        ...
-        "startmonth_<?=$bid_id?>_<?=$step_data['id']?>": месяц окончания пред. этапа+1
-        "finishmonth_<?=$bid_id?>_<?=$step_data['id']?>": [месяц окончания пред. этапа+2,12]
-    }
-    ...  if (count($TPL['STEPSDATA']) == $i-1)
-    "<?=$year?>": {
-        "startmonth_<?=$bid_id?>_<?=$step_data['id']?>": [1]
-        "finishmonth_<?=$bid_id?>_<?=$step_data['id']?>": [2,12]
-        ...
-        "startmonth_<?=$bid_id?>_<?=$step_data['id']?>": месяц окончания пред. этапа+1
-        "finishmonth_<?=$bid_id?>_<?=$step_data['id']?>": [$TPL['FINISHDATEARR'][1]]
-    }
-}
-*/
-
-var match_step_num_to_id = [];  //массив соответствия номеров этапов идентификаторам DOM-элементам с месяцами
-/*
-собираемая структура match_step_num_to_id = {
-    "year": [step_num:"<?=$bid_id?>_<?=$step_data['id']?>",...],
-    ...
-}
-сборка при загрузке страницы
-*/
-
 function monthName(monthNum)
 {
-    var mn = ["Нулябрь","Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+    var mn = ["нулябрь","январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
     return mn[monthNum];
 }
 </script>
 
 <?
+function makeCommonSelectWithSelected($selected)
+{
+    $selText = "";
+    for ($i=1;$i<=12;$i++)
+    {
+        if ($selected == $i)
+        {
+            $selText .= "<option value='".$i."' selected>".MonthsName($i)."</option>";
+        } else {
+            $selText .= "<option value='".$i."'>".MonthsName($i)."</option>";
+        }
+    }
+    return $selText;
+}
+
 $cur_year = 0;
 foreach ($TPL['STEPSDATA'] as $step_data)
 {
@@ -470,41 +417,8 @@ foreach ($TPL['STEPSDATA'] as $step_data)
             <td width="500px" class="top"><img src="/adm/icon/spacer.gif" width="0" height="25" alt="" /><input type="submit" name="addstep" value="Добавить этап к году"></td>
           </tr>
         </table>
-        <?
-        $postfix = $bid_id."_".$step_data['id'];
-        ?>
-        <script>
-            dojo.ready(function()
-            { <?
-                if ($year == $TPL['STARTDATEARR'][0])  // first  year
-                { ?>
-                    makeCombobox("startmonth_<?=$postfix?>",<?=$TPL['STARTDATEARR'][1]?>,<?=$TPL['STARTDATEARR'][1]?>,"wellSel",<?=$TPL['STARTDATEARR'][0]?>);
-                    var range = [];
-                    for (var i=<?=$TPL['STARTDATEARR'][1]+1?>; i<=12; i++)
-                    {
-                        range.push(i);
-                    }
-                    makeCombobox("finishmonth_<?=$postfix?>",range,0,"wellSel",<?=$TPL['STARTDATEARR'][0]?>); <?
-                } else
-                { ?>
-                    makeCombobox("startmonth_<?=$postfix?>",1,1,"wellSel",<?=$year?>);
-                    var range = [];
-                    for (var i=2; i<=12; i++)
-                    {
-                        range.push(i);
-                    }
-                    makeCombobox("finishmonth_<?=$postfix?>",range,0,"wellSel",<?=$year?>); <?
-                } ?>
-                match_step_num_to_id["<?=$year?>"] = [];
-                match_step_num_to_id["<?=$year?>"].push(0); //нулевой элемент пустой тк номера этапов начинаются с 1, а делать для этого ассоциативный не надо
-            })
-        </script>
          <?
     } ?>
-<script> dojo.ready(function()
-{
-    match_step_num_to_id["<?=$year?>"].push("<?=$bid_id?>_<?=$step_data['id']?>");
-}) </script>
 <span id="step_<?=$bid_id?>_<?=$step_data['id']?>">
 <h4>Этап <?=$step_data['step_number']?>&nbsp;
     <? if ($step_data['complete']!=1) { ?> <span class="local_red">не все поля этапа заполнены</span> <? } else { ?> <span class="local_grey">все поля этапа заполнены</span> <? } ?>&nbsp;
@@ -533,26 +447,14 @@ foreach ($TPL['STEPSDATA'] as $step_data)
   </tr>
   <tr>
     <td>Месяц начала работ</td>
-    <td id="startmonth_<?=$bid_id?>_<?=$step_data['id']?>"><select class="step_date" name="start_month"><option selected value=<?=(isset($step_data['start_month']))? $step_data['start_month']:''?>><?=(isset($step_data['start_month']))? MonthsName($step_data['start_month']):''?></option></select></td>
-    <script>
-    dojo.ready(function()
-    {
-        dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("year", <?=$year?>);
-        dojo.query("#startmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("step_num", <?=$step_data['step_number']?>);
-    })</script>
+    <td id="startmonth_<?=$bid_id?>_<?=$step_data['id']?>"><select class="step_date" name="start_month"><? if (isset($step_data['start_month'])) {echo makeCommonSelectWithSelected($step_data['start_month']);} else {echo makeCommonSelectWithSelected(null);}?></select></td>
   </tr>
   <tr>
     <td>Месяц окончания работ</td>
-    <td id="finishmonth_<?=$bid_id?>_<?=$step_data['id']?>"><select class="step_date" name="finish_month"><option selected value=<?=(isset($step_data['finish_month']))? $step_data['finish_month']:''?>><?=(isset($step_data['finish_month']))? MonthsName($step_data['finish_month']):''?></option></select></td>
-    <script>
-    dojo.ready(function()
-    {
-        dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("year", <?=$year?>);
-        dojo.query("#finishmonth_<?=$bid_id?>_<?=$step_data['id']?>").data("step_num", <?=$step_data['step_number']?>);
-    })</script>
+    <td id="finishmonth_<?=$bid_id?>_<?=$step_data['id']?>"><select class="step_date" name="finish_month"><? if (isset($step_data['finish_month'])) {echo makeCommonSelectWithSelected($step_data['finish_month']);} else {echo makeCommonSelectWithSelected(null);}?></select></td>
   </tr>
   <tr>
-    <td>Стоимость работ, руб</td>
+    <td>Доля стоимости работ этапа в общей стоимости работ, %</td>
     <td><input type="text" name="cost" value="<?=(isset($step_data['cost']))? $step_data['cost']:''?>"></td>
   </tr>
 </table>
@@ -560,18 +462,6 @@ foreach ($TPL['STEPSDATA'] as $step_data)
 </form>
 <hr></span>
 <? } ?>
-
-<script>
-dojo.ready(function() {
-    dojo.query("[name='addstep']").forEach(function(node,i,a)
-    {
-      var year = node.parentNode.parentNode.parentNode.parentNode.id;
-      var postfix = match_step_num_to_id[year][match_step_num_to_id[year].length-1];
-      var select = dojo.query("#finishmonth_"+postfix+">select")[0];
-      dojo.connect(node,"onclick",function(e){remakeRestCombos(e, select)});
-    });
-})
-</script>
 
 <?
     include TPL_CMS."_footer.php";
