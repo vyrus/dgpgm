@@ -2,7 +2,7 @@
 include TPL_CMS."_header.php";
 ?>
 
-<h1>Заявка №<?=$TPL['INFO']['start_realization']?>-<?=$TPL['INFO']['measure_has_notice_measure_id']?>-<?=$_GET['id']?> <?=(!empty($TPL['INFO']['datetime_electron_bid_receiving']))?"<span style='color:green;'>(отправлена на конкурс)</span>":""?></h1>
+<h1>Заявка №<?=$TPL['INFO']['bid_cipher']?> <?=(!empty($TPL['INFO']['datetime_electron_bid_receiving']))?"<span style='color:green;'>(отправлена на конкурс)</span>":""?></h1>
 
 <? if (empty($TPL['INFO']['datetime_electron_bid_receiving'])) {?>
 <p>Вы можете приступить к формированию заявки.<br />

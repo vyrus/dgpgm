@@ -1,2 +1,37 @@
 
 
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: update ?#FK_BID set work_topic= ?,
+                                      ' at line 1
+ ERROR: update ?#FK_BID set work_topic= ?,
+                                                                  place_name=?,
+                                                                  place_type_id=?,
+                                                                  place_district_id=?,
+                                                                  place_okrug_id=?,
+                                                                  start_date=?,
+                                                                  finish_date=?,
+                                                                  price_works_actual=UNKNOWN_PLACEHOLDER_7
+                                                  where id=?
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0' at line 1
+ ERROR: delete from ?#FK_SESSION where sid=UNKNOWN_PLACEHOLDER_0

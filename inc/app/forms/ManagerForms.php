@@ -46,10 +46,10 @@ class ManagerForms{
    }
     //Информация об уведомлении по мероприятию
 	function viewNotice($measure){
-		$sql=sql_placeholder('select notice_id from ?#FK_MEASURE_HAS_NOTICE where measure_id=?', $measure);
+		$sql=sql_placeholder('select mn.notice_id, n.turn, YEAR(n.start_realization) start_realization from ?#FK_MEASURE_HAS_NOTICE as mn, ?#FK_NOTICE as n where n.id=mn.notice_id and mn.measure_id=?', $measure);
 		return $this->db->select_row($sql);
 	}
-   
+
 	// Все объявления
 	function allBids(){
 		$sql=sql_placeholder('select * from ?#FK_NOTICE order by start_acquisition');
@@ -60,6 +60,16 @@ class ManagerForms{
 		$sql=sql_placeholder('select * from ?#FK_FORM where bid_id=?', $id);
 		return $this->db->_array_data($sql);
     }
+	// max bid id в заявках одного меопрития с очереди
+	function maxBidMeasure($measure_id, $turn) { //$noticeinfo['notice_id']   $noticeinfo['turn']
+		$sql=sql_placeholder('select max(b.bid_id_in_measure) as max_id from ?#FK_BID as b, ?#FK_NOTICE as n, ?#FK_MEASURE_HAS_NOTICE as mn where
+			mn.notice_id=n.id AND
+			b.measure_has_notice_measure_id=mn.measure_id AND
+			b.measure_has_notice_notice_id=mn.notice_id
+			and measure_has_notice_measure_id=?
+			and n.turn=?', $measure_id, $turn);
+		return $this->db->select_row($sql);
+	}
 	
 	//Информация об одной заявке
 	function viewBid($id){
@@ -96,9 +106,14 @@ class ManagerForms{
 		$sql=sql_placeholder('select * from ?#FK_APP_ORG where id=? ', $id);
 		return $this->db->select_row($sql);
 	}
-	
+
 	function listOrgInn($inn){
 		$sql=sql_placeholder('select * from ?#FK_APP_ORG where INN=? ', $inn);
+		return $this->db->_array_data($sql);
+	}
+	
+	function listFizInn($inn){
+		$sql=sql_placeholder('select * from ?#FK_APP_IND where INN=? ', $inn);
 		return $this->db->_array_data($sql);
 	}
 	
@@ -226,7 +241,7 @@ class ManagerForms{
         }elseif ($st==4) {
 			$where = "";
         }
-		
+
 		$sql=sql_placeholder('select b.datetime_electron_bid_receiving, b.datetime_paper_bid_receiving, b.id bid, b.measure_has_notice_measure_id, b.measure_has_notice_notice_id, YEAR(n.start_realization) start_realization
                  from ?#FK_BID as b, ?#FK_NOTICE as n
                  where b.measure_has_notice_notice_id=n.id and b.user_id=?'.$where.' order by b.id', $user_id);
@@ -343,6 +358,86 @@ class ManagerForms{
 		return $this->db->_array_data($sql);
     }
 
+    function checkStepDates($bid_id)
+    {
+		$sql=sql_placeholder('select month(start_date) start_month, month(finish_date) finish_month from ?#FK_BID where id=?',$bid_id);
+		$bid_data = $this->db->select_row($sql);
+        $bid_start_month = $bid_data['start_month'];
+        $bid_finish_month = $bid_data['finish_month'];
+
+		$sql=sql_placeholder('select id, start_month,finish_month, year, step_number,cost from ?#FK_WORK_STEP where bid_id=? order by year, step_number',$bid_id);
+        $steps = $this->db->_array_data($sql);
+        $last_step = end($steps);
+        $cur_year = null;
+        $prev_step = null;
+        $errors = array();
+        $years_cnt = 0;
+        $last_steps = array();
+        $cost_sum = 0;
+        foreach ($steps as $step)
+        {
+            $last_steps[$step['year']] = $step['step_number'];
+
+            $cost_sum += $step['cost'];
+        }
+
+        if ($cost_sum != 100) {$errors[] = array('checking_message',"Сумма долей стоимости по этапам не равна 100%");};
+
+        foreach ($steps as $step)
+        {
+            if ($cur_year != $step['year'])
+            {
+                // first step
+                $years_cnt++;
+                if ($years_cnt == 1)
+                {
+                    //$errors[] = array('startmonth_'.$bid_id."_".$step['id'], print_r($step, true));
+                    //$errors[] = array('startmonth_'.$bid_id."_".$step['id'], var_dump($bid_start_month));
+                    if ($step['start_month'] != $bid_start_month) {
+                        $errors[] = array('startmonth_'.$bid_id."_".$step['id'], "Дата начала этапа не совпадает с указанным в ТЗ");
+                    }
+                } else
+                {
+                    //$errors[] = array('startmonth_'.$bid_id."_".$step['id'], print_r($step, true));
+                    if ($step['start_month'] != 1) {
+                        $errors[] = array('startmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата начала этапа");
+                    }
+                }
+                // last step in year
+                if ($last_step['year'] != $step['year'])
+                {
+                    if ($step['finish_month'] != 12) {$errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата окончания этапа"); }
+                }
+/*                if ($step['finish_month'] < 2 || $step['finish_month'] > 12) {
+                  $errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата окончания этапа");
+                }*/
+            } else
+            {
+                if ($step['start_month'] != $prev_step['finish_month'] + 1 && $step['start_month'] != $prev_step['finish_month']) {
+                    $errors[] = array('startmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата начала этапа");
+                }
+
+                // not first step
+                if ($last_steps[$step['year']] != $step['step_number'])
+                {
+                    if ($step['finish_month']<2 && $step['finish_month']>12) {$errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата окончания этапа"); };
+                } else
+                {
+                  // last step in year
+                  if ($last_step['year'] != $step['year']) {if ($step['finish_month'] != 12) {$errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата окончания этапа"); }};
+                }
+            }
+            $prev_step = $step;
+            $cur_year = $step['year'];
+        }
+
+        if ($last_step['finish_month'] != $bid_finish_month) {
+          $errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Дата окончания этапа не совпадает с указанным в ТЗ");
+        }
+        if (empty($errors)) {$errors[] = array('checking_message',"Данные введены корректно");};
+        return $errors;
+    }
+
     function delStep($step_id)
     {
 		$sql=sql_placeholder('select bid_id,year,step_number from ?#FK_WORK_STEP where id=?',$step_id);
@@ -395,6 +490,40 @@ class ManagerForms{
         return $work_steps;
     }
 
+    function delStepWorksByBid($bid_id,$yearsToSave)
+    {
+        $y_where = '';
+        foreach ($yearsToSave as $y)
+        {$y_where .= " AND year<>'".$y."-01-01'";
+        }
+   		$sql=sql_placeholder('select * from ?#FK_WORK_STEP where bid_id=? '.$y_where.' order by year, step_number', $bid_id);
+        $work_steps = $this->db->_array_data($sql);
+        if (!empty($work_steps))
+        {
+            foreach ($work_steps as $key=>$row)
+            {
+                 //read works for step_id
+                $sql=sql_placeholder('delete from ?#FK_WORK where work_step_id=? ', $row['id']);
+        		$this->db->query($sql);
+            }
+        }
+   		$sql=sql_placeholder('delete from ?#FK_WORK_STEP where bid_id=? '.$y_where, $bid_id);
+		$this->db->query($sql);
+        return true;
+    }
+
+
+	function addStepWorksByBid($bid_id,$yearsToAdd)
+    { //improve : in CP the same code
+        foreach($yearsToAdd as $year)
+        {
+      		$row['step_number'] = 1;
+      		$row['year'] = $year."-01-01";
+          	$row['bid_id'] = $bid_id;
+          	$id=$this->db->addrow(FK_WORK_STEP,  $row);
+        }
+    }
+
 	function stepWorksByBidMerge($bid_id)
     {
    		$sql=sql_placeholder('select st.*, YEAR(st.year) as year, w.* from ?#FK_WORK_STEP as st, ?#FK_WORK as w where bid_id=? and st.id=w.work_step_id order by year, step_number', $bid_id);
@@ -428,7 +557,7 @@ class ManagerForms{
 					}
 					print json_encode($result);
 				break;
-				
+
 				// для регистрации, как в админке
 				case($_GET['action']=='mr_get'):
 					$pp_id = @intval($_GET['pp_id']);
@@ -445,7 +574,7 @@ class ManagerForms{
 					}
 					print json_encode($result);
 				break;
-				
+
 				case($action=='tablefilter' && isset($_POST['pp']) && isset($_POST['mr']) && isset($_POST['r'])):
 					$pp = intval($_POST['pp']);
 					$mr = strval($_POST['mr']);
@@ -455,9 +584,9 @@ class ManagerForms{
 					$TPL['TABLEFORM'] = $this->listBids($pp, $mr, $r, $user_id);
                     include TPL_CMS_FORMS."table-filter.php";
 				break;
-				case($action=='infoyur' && $_GET['id']):// 
+				case($action=='infoyur' && $_GET['id'])://
 					//получаем информацию о заявке
-					
+
 					//$finish_acquisition_tsh = strtotime($TPL['INFO']['finish_acquisition']);
 					if (USER_TYPE == 'yur' && USER_ID>2) { //$TPL['INFO']['user_id'] == USER_ID &&
 					// показывать кнопочку отправить или нет
@@ -468,7 +597,7 @@ class ManagerForms{
 					}*/
 					//select данных по организации
 					$_TPL['ROW']=$this->viewOrganization($_TPL['USERDATA']['id_org_ind']);
-					
+
 					if ($_POST/* && $finish_acquisition_tsh>time() || $_POST && empty($TPL['INFO']['datetime_electron_bid_receiving'])*/) {
 						$tmp=$this->prepareInfoorgData($_POST);
 						$_TPL['ERROR'] = $tmp['error'];
@@ -504,48 +633,24 @@ class ManagerForms{
 					include TPL_CMS_FORMS."no-rights.php";
 					}
                 break;
-				
-				case($action=='infoyurfirst' && $_GET['id']):// 
+
+				case($action=='infoyurfirst' && $_GET['id'])://
 					//получаем информацию о заявке
 					$TPL['INFO']=$this->viewBid(intval($_GET['id']));
-					
-					if (USER_TYPE == 'yur' && USER_ID>2) { //$TPL['INFO']['user_id'] == USER_ID &&
-					
-					//select данных по организации
-					/*$_TPL['ROW']=$this->viewOrganization($_TPL['USERDATA']['id_org_ind']);*/
 
-					/*if ($_POST) {
-						$tmp=$this->prepareInfoorgData($_POST);
-						$_TPL['ERROR'] = $tmp['error'];
-						$_TPL['ROW'] = $tmp['data'];
-							if (!count($tmp['error'])){
-								$row['complete_info'] = 1;
-								ManagerUser::editUserData(USER_ID, $row);
-								//$this->tableComplete($_GET['id'], $action, 1);
-								$_TPL['ERROR'][] = "Форма заполнена полностью";
-							} else {
-								$row['complete_info'] = 0;
-								ManagerUser::editUserData(USER_ID, $row);
-								//$this->tableComplete($_GET['id'], $action, 0);
-							}
-						$sql=sql_placeholder('update ?#FK_APP_ORG set ?% where id=? ', $_TPL['ROW'], $_TPL['USERDATA']['id_org_ind']);
-						$this->db->query($sql);
-						//$user=& new ManagerUser($db);
-						$user_data=ManagerUser::GetUserData(SESSION_ID);
-						$_TPL['USERDATA'] =&$user_data;
-					}*/
+					if (USER_TYPE == 'yur' && USER_ID>2) { //$TPL['INFO']['user_id'] == USER_ID &&
+
 					$_TPL['BIDMENU']=$this->createBidMenu($TPL['INFO'], $_TPL['USERDATA'], 'infoyur');
                     include TPL_CMS_FORMS."info-org-first.php";
 					}else{
 					include TPL_CMS_FORMS."no-rights.php";
 					}
                 break;
-				
-				case($action=='infofiz' && $_GET['id']): // 
+
+				case($action=='infofiz' && $_GET['id']): //
 					//получаем информацию о заявке
-					$TPL['INFO']=$this->viewBid(intval($_GET['id']));
 					//$finish_acquisition_tsh = strtotime($TPL['INFO']['finish_acquisition']);
-					if (USER_TYPE == 'fiz' && USER_ID>2) { //$TPL['INFO']['user_id'] == USER_ID && 
+					if (USER_TYPE == 'fiz' && USER_ID>2) { //$TPL['INFO']['user_id'] == USER_ID &&
 					/*if ($finish_acquisition_tsh<time() || !empty($TPL['INFO']['datetime_electron_bid_receiving'])) {
 						$form_dis='disabled="disabled"';
 					} else {
@@ -558,6 +663,10 @@ class ManagerForms{
 						$tmp=$this->prepareInfofizData($_POST);
 						$_TPL['ERROR'] = $tmp['error'];
 						$_TPL['ROW'] = $tmp['data'];
+						if (isset($_POST['edit-fiz'])) {
+							$bid_info['applicant_individual_id'] = $_TPL['USERDATA']['id_org_ind'];
+							$this->updateBid($_TPL['USERDATA']['bid_id'], $bid_info);
+						} else {
 							if (!count($tmp['error'])){
 								$row['complete_info'] = 1;
 								ManagerUser::editUserData(USER_ID, $row);
@@ -572,6 +681,11 @@ class ManagerForms{
 						$this->db->query($sql);
 						$user_data=ManagerUser::GetUserData(SESSION_ID);
 						$_TPL['USERDATA'] =&$user_data;
+						}
+					}
+					$TPL['INFO']=$this->viewBid(intval($_GET['id']));
+					if ($TPL['INFO']['applicant_individual_id'] == 0) {
+						header('Location: http://'.$_SERVER['SERVER_NAME'].'/forms/bid/'.$_GET['id'].'/infofizfirst'); exit;
 					}
 					$_TPL['BIDMENU']=$this->createBidMenu($TPL['INFO'], $_TPL['USERDATA'], $_GET['action']);
                     include TPL_CMS_FORMS."info-fiz.php";
@@ -580,6 +694,18 @@ class ManagerForms{
 					}
                 break;
 
+				case($action=='infofizfirst' && $_GET['id'])://
+					//получаем информацию о заявке
+					$TPL['INFO']=$this->viewBid(intval($_GET['id']));
+
+					if (USER_TYPE == 'fiz' && USER_ID>2) {
+					$_TPL['BIDMENU']=$this->createBidMenu($TPL['INFO'], $_TPL['USERDATA'], 'infofiz');
+                    include TPL_CMS_FORMS."info-fiz-first.php";
+					}else{
+					include TPL_CMS_FORMS."no-rights.php";
+					}
+                break;
+				
 				case($action=='subprogramedit'):
 					// вывод списка подпрограмм для редактирования и добавления
 					$TPL['SUBPROG'] = $this->listSubprogram();
@@ -594,6 +720,20 @@ class ManagerForms{
                         // write bid data
     					if ($_POST['tzinsert'])
                         {
+                            /*if years were changed - change calendar plan*/
+                            $startDateArr = split("-",$TPL['INFO']['start_date']);
+                            $finishDateArr = split("-",$TPL['INFO']['finish_date']);
+                            if (($startDateArr[0] != $_POST['yearstart']) || ($finishDateArr[0] != $_POST['yearend']))
+                            {
+                                $oldCPYearsRange = range($startDateArr[0],$finishDateArr[0]);
+                                $newCPYearsRange = range($_POST['yearstart'],$_POST['yearend']);
+                                $yearsToSave = array_intersect($oldCPYearsRange,$newCPYearsRange);
+                                $this->delStepWorksByBid($bid_id,$yearsToSave); // dell work steps & works of $bid_id & with year not in range $yearsToSave
+                                $yearsToAdd = array_diff($newCPYearsRange, $yearsToSave);
+                                $this->addStepWorksByBid($bid_id,$yearsToAdd); // add work steps of $bid_id & with year in range $yearsToAdd
+                            }
+                            /* change calendar plan*/
+
     						$tmp=$this->prepareTZData($_POST,$bid_id);
     						$_TPL['ERROR'] = $tmp['error'];
     						$_TPL['ROW'] = $tmp['data'];
@@ -694,7 +834,7 @@ class ManagerForms{
               		$row['year'] = $_GET['year']."-01-01";
                   	$row['bid_id'] = $_GET['bidid'];
                     $id=$this->db->addrow(FK_WORK_STEP,  $row);
-                    $jsonStepData = '{"step_id":"'.$id.'", "step_number":"'.$step_number.'"}';
+                    $jsonStepData = '{"step_id":"'.$id.'", "step_number":"'.$step_number.'", "year":"'.$_GET['year'].'"}';
                    	echo $jsonStepData;
 				break;
 				case($action=='price' && $_GET['id']):
@@ -909,23 +1049,45 @@ class ManagerForms{
 				
 				case($action=='search_inn'):
 					$inn = $_GET['inn'];
-					$TPL['ORG'] = $this->listOrgInn($inn);
 					
+					if (USER_TYPE == 'yur') {
+					
+						$TPL['ORG'] = $this->listOrgInn($inn);
+						
 					if (!empty($TPL['ORG'])) {
-						echo "<h3>Найдены следующие данные об организации:</h3>
-						<ul>";
-						foreach ($TPL['ORG'] as $row) {
-							echo "<li><strong>".$row['full_title']."</strong> <a onClick='viewOrg(".$row['id'].")' href='#'>показать данные</a>";
+							echo "<h3>Найдены следующие данные об организации:</h3>
+							<ul>";
+							foreach ($TPL['ORG'] as $row) {
+								echo "<li><strong>".$row['full_title']."</strong> <a onClick='viewOrg(".$row['id'].")' href='#'>показать данные</a>";
+							}
+							echo "</ul>
+							<p>Нажмите «Показать данные» рядом с названием организации. Проверьте их корректность.
+							Если данные корректны, нажмите кнопку «Использовать существующие данные».
+							Если данные некорректны, нажмите кнопку «Редактировать». Кнопки расположены внизу страницы.</p>
+							";
+						} else {
+							echo "<h3>Организации с ИНН ".$inn." не найдено. Повторите поиск или <a href=\"/?mod=forms&action=no-duplicate-org\">введите данные о Вашей организации самостоятельно</a></h3>";
 						}
-						echo "</ul>
-						<p>Нажмите «Показать данные» рядом с названием организации. Проверьте их корректность.
-						Если данные корректны, нажмите кнопку «Использовать существующие данные».
-						Если данные некорректны, нажмите кнопку «Редактировать». Кнопки расположены внизу страницы.</p>
-						";
-					} else {
-						echo "<h3>Организации с ИНН ".$inn." не найдено. Повторите поиск или <a href=\"/?mod=forms&action=no-duplicate-org\">введите данные о Вашей организации самостоятельно</a></h3>";
+					} elseif (USER_TYPE == 'fiz') {
+						
+						$TPL['FIZ'] = $this->listFizInn($inn);
+					
+						if (!empty($TPL['FIZ'])) {
+							echo "<h3>Найдены следующие данные о физическом лице:</h3>
+							<ul>";
+							foreach ($TPL['FIZ'] as $row) {
+								echo "<li><strong>".$row['last_name']." ".$row['first_name']." ".$row['middle_name']."</strong> <a onClick='viewFiz(".$row['id'].")' href='#'>показать данные</a>";
+							}
+							echo "</ul>
+							<p>Нажмите «Показать данные» рядом с ФИО. Проверьте их корректность.
+							Если данные корректны, нажмите кнопку «Использовать существующие данные».
+							Если данные некорректны, нажмите кнопку «Редактировать». Кнопки расположены внизу страницы.</p>
+							";
+						} else {
+							echo "<h3>Информации о физическом лице с паспортом ".$pasp_ser." ".$pasp_numb." не найдено. Повторите поиск или <a href=\"/?mod=forms&action=no-duplicate-fiz\">введите данные о самостоятельно</a></h3>";
+						}
 					}
-				break;
+				break;				
 
 				case($action=='duplicate-org' && $_GET['id']):
 					$org = intval($_GET['id']);
@@ -954,11 +1116,47 @@ class ManagerForms{
 					header('Location: /forms/bid/'.$_TPL['USERDATA']['bid_id'].'/infoyur');
 					//
 				break;
+				
+				case($action=='duplicate-fiz' && $_GET['id']):
+					$fiz = intval($_GET['id']);
+					//в заявку вписываем applicant_individual_id из таблицы юзер (КОШМАР!!!!)
+					$bid_info['applicant_individual_id'] = $_TPL['USERDATA']['id_org_ind'];
+					$this->updateBid($_TPL['USERDATA']['bid_id'], $bid_info);
+					// получаем информацию о физ лице с $_GET['id']
+					$TPL['APPLICANT']=$this->viewIndividual($fiz);
+					unset ($TPL['APPLICANT']['id']);
+					// вставляем этот массив в таблицу с физ лицом с айди applicant_organization_id
+					$sql=sql_placeholder('update ?#FK_APP_IND set ?% where id=? ', $TPL['APPLICANT'], $_TPL['USERDATA']['id_org_ind']);
+                    $this->db->query($sql);
+					// находим значение complete в таблице пользователей для этой организации .......
+					$sql=sql_placeholder('select complete_info from ?#FK_USER where id_org_ind=? ', $fiz);
+					$complete = $this->db->select_row($sql);
+					// пишем условия обновлять лампочку или нет
+					if ($complete == 1)	{
+						$row['complete_info'] = 1;
+						ManagerUser::editUserData(USER_ID, $row);
+						$_TPL['ERROR'][] = "Форма заполнена полностью";
+					} else {
+						$row['complete_info'] = 0;
+						ManagerUser::editUserData(USER_ID, $row);
+					}
+					//редирект пользователя на страницу информации об организации
+					header('Location: /forms/bid/'.$_TPL['USERDATA']['bid_id'].'/infofiz');
+					//
+				break;
+				
 				// отказался от копирования данных организации
 				case($action=='no-duplicate-org' && $_GET['id']):
 					$bid_info['applicant_organization_id'] = $_TPL['USERDATA']['id_org_ind'];
 					$this->updateBid($_TPL['USERDATA']['bid_id'], $bid_info);
 					header('Location: /forms/bid/'.$_TPL['USERDATA']['bid_id'].'/infoyur');
+				break;
+				
+				// отказался от копирования данных о физ лице
+				case($action=='no-duplicate-fiz' && $_GET['id']):
+					$bid_info['applicant_individual_id'] = $_TPL['USERDATA']['id_org_ind'];
+					$this->updateBid($_TPL['USERDATA']['bid_id'], $bid_info);
+					header('Location: /forms/bid/'.$_TPL['USERDATA']['bid_id'].'/infofiz');
 				break;
 				
 				case($action=='vieworg' && $_GET['id']):
@@ -968,9 +1166,16 @@ class ManagerForms{
 					include TPL_CMS_FORMS."vieworg.php";
 				break;
 				
+				case($action=='viewfiz' && $_GET['id']):
+					$fiz=intval($_GET['id']);
+					$TPL['ROW']=$this->viewIndividual($fiz);
+					unset($TPL['ROW']['id']);
+					include TPL_CMS_FORMS."viewfiz.php";
+				break;
+				
 				case($action=='print' && $_GET['id']): // это генерация печатной формы заявки
 					$TPL['INFO']=$this->viewBid(intval($_GET['id'])); //получили информацию о заявке
-					$bid_number = $TPL['INFO']['start_realization']."-".$TPL['INFO']['measure_has_notice_measure_id']."-".$_GET['id'];
+					$bid_number = $TPL['INFO']['bid_cipher'];
 					// получаем заявку
 					if (USER_TYPE == 'yur') {
 						$TPL['APPLICANT']=$this->viewOrganization($_TPL['USERDATA']['id_org_ind']);
@@ -1042,7 +1247,7 @@ class ManagerForms{
 						if (empty($TPL['INFO']['datetime_electron_bid_receiving'])) {
 							$shifr_pdf = "";
 						} else {
-							$shifr_pdf = "Заявка №".$bid_number;
+							$shifr_pdf = "Шифр заявки: ".$bid_number;
 						}
 						
 						
@@ -1051,7 +1256,7 @@ class ManagerForms{
 						require_once('/var/www/pdf/tcpdf.php');
 						
 						// create new PDF document
-$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+						$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
 						// set document information
 						//$pdf->SetCreator(PDF_CREATOR);
@@ -1081,11 +1286,11 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 						//set image scale factor
 						$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 
-						$pdf->setAnyText($shifr_pdf); // произвольный текст в футере
 						
 						//set some language-dependent strings
 						$pdf->setLanguageArray($l);
 						
+						$pdf->setAnyText($_SERVER['SERVER_NAME'].' Форма 1 '.$shifr_pdf); // произвольный текст в футере
 						$pdf->setHeaderTemplateAutoreset(true);
 						$pdf->SetHeaderData(false, false, false, false);
 						$pdf->AddPage();
@@ -1095,6 +1300,7 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 						$pdf->EndPage();
 						//$pdf->lastPage();
 						
+						$pdf->setAnyText($_SERVER['SERVER_NAME'].' Форма 2 '.$shifr_pdf); // произвольный текст в футере
 						$pdf->setHeaderTemplateAutoreset(true);
 						$pdf->SetHeaderData(false, false, false, false);
 						$pdf->StartPage();
@@ -1102,14 +1308,16 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 						$pdf->writeHTML($applicant, true, false, true, false, '');
 						$pdf->EndPage();
 						
-						$pdf->setPrintHeader(true);
+						//$pdf->setPrintHeader(true);
 						//$pdf->setPrintFooter(true);
+						$pdf->setAnyText($_SERVER['SERVER_NAME'].' Форма ТЗ '.$shifr_pdf); // произвольный текст в футере
 						$pdf->setHeaderTemplateAutoreset(true);
 						$pdf->SetHeaderData(false, false, '', 'Форма ТЗ');
 						$pdf->AddPage();
 						$pdf->writeHTML($tz, true, false, true, false, '');
 						$pdf->lastPage();
 						
+						$pdf->setAnyText($_SERVER['SERVER_NAME'].' Форма КП '.$shifr_pdf); // произвольный текст в футере
 						$pdf->setHeaderTemplateAutoreset(true);
 						$pdf->SetHeaderData(false, false, '', 'Форма КП');
 						$pdf->AddPage();
@@ -1118,6 +1326,7 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 
 						if (isset($price)) {
 							// set default header data
+							$pdf->setAnyText($_SERVER['SERVER_NAME'].' Форма ОЦ '.$shifr_pdf); // произвольный текст в футере
 							$pdf->setHeaderTemplateAutoreset(true);
 							$pdf->SetHeaderData(false, false, '', 'Форма ОЦ');
 							$pdf->AddPage();
@@ -1145,6 +1354,11 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
                     exit;
 				break;
 
+				case($action=='checkStepDates'):
+                    $bid_id = intval($_GET['bidid']);
+                    $errors = $this->checkStepDates($bid_id);
+                    echo json_encode($errors);
+				break;
 				case($action=='tablestep'):
                     $bid_id = intval($_GET['id']);
 					//получаем информацию о заявке
@@ -1382,7 +1596,7 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 							}
 						}
 						
-						/*if ($compl!=3) {
+						if ($compl!=3) {
 							$form_dis_submit = ' disabled="disabled"';
 							$form_dis_print = ' disabled="disabled"';
 						} elseif ($_TPL['USERDATA']['complete_info'] != 1) {
@@ -1400,7 +1614,7 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 						} else {
 							$form_dis_submit = '';
 							$form_dis_print = '';
-						}*/
+						}
 						if (!empty($TPL['INFO']['datetime_electron_bid_receiving'])) {
 							$form_print_name = 'Распечатать контрольный экземпляр заявки';
 						} else {
@@ -2209,12 +2423,13 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 		} else {
 			$data['work_topic'] = $row['work_topic'];
 		}
-		if (empty($row['price_works_actual'])) {
+/*		if (empty($row['price_works_actual'])) {
 			$error[]='Укажите общую стоимость работ';
 			$data['price_works_actual'] = '';
 		} else {
 			$data['price_works_actual'] = $row['price_works_actual'];
-		}
+		}*/
+			$data['price_works_actual'] = '';
 
         // place for time & address....
 		if (empty($row['place_name'])) {
@@ -2413,8 +2628,8 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 		} else {
 			$img = "";
 			$class = "";
-			$href = "<a href='/forms/bid/".$row_bid_info['id']."/printandsubmit'>"; // delete
-			$endhref = "</a>"; // delete
+			$href = "";
+			$endhref = "";
 		}
 		if ($action == 'printandsubmit' ) {
 			$class = "current";

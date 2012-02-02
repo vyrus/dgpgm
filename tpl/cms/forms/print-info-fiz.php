@@ -7,7 +7,7 @@
 <p></p>
 <p></p>
 <p></p>
-<p align="center"><strong>Форма 2. Сведения о физическом лице</strong></p>
+<p align="center"><strong>Сведения о физическом лице</strong></p>
 <p></p>
 <p></p>
 <p>Фамилия, имя, отчество: <?=(!empty($TPL['APPLICANT']['last_name']))?$TPL['APPLICANT']['last_name']:''?> <?=(!empty($TPL['APPLICANT']['first_name']))?$TPL['APPLICANT']['first_name']:''?> <?=(!empty($TPL['APPLICANT']['middle_name']))?$TPL['APPLICANT']['middle_name']:''?></p>

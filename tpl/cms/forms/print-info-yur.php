@@ -7,7 +7,7 @@
 <p></p>
 <p></p>
 <p></p>
-<p align="center"><strong>Форма 2. Сведения об организации</strong></p>
+<p align="center"><strong>Сведения об организации</strong></p>
 <p></p>
 <p></p>
 <p>Полное наименование организации: <?=(!empty($TPL['APPLICANT']['full_title']))?$TPL['APPLICANT']['full_title']:''?></p>

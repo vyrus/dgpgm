@@ -527,7 +527,15 @@ class ManagerUser{
 							$row = array();
 							$row['date_create_bid'] = date('Y-m-d');
 							$row['measure_has_notice_measure_id'] = $tmp['data']['mr'];
-							$row['measure_has_notice_notice_id'] = ManagerForms::viewNotice($tmp['data']['mr']);
+							$noticeinfo = ManagerForms::viewNotice($tmp['data']['mr']);
+							$row['measure_has_notice_notice_id'] = $noticeinfo['notice_id'];
+							// потом нужно будет вставить bid_id_in_measure
+							//$maxbid = ManagerForms::maxBidMeasure($tmp['data']['mr'], $noticeinfo['turn']);
+							//$maxbid = $maxbid + 1;
+							//$row['bid_id_in_measure'] = $maxbid;
+							//$max_id_bid = sprintf("%03d", $row['bid_id_in_measure']);
+							//$bid_login = $noticeinfo['start_realization']."_".$tmp['data']['mr']."_".$noticeinfo['turn']."_".$max_id_bid;
+							//$row['bid_cipher'] = $bid_login;
 							$id=$this->db->addrow(FK_BID, $row);
 							if ($id) {
 							// добавляем три записи в таблицу с формами
@@ -538,9 +546,15 @@ class ManagerUser{
 									$data['complete'] = 0;
 									$this->db->addrow(FK_FORM, $data);
 								}
+							//данные для заявки
+							$bid = array();							
+							$maxbid = $id;
+							$max_id_bid = sprintf("%03d", $maxbid);
+							$bid_login = $noticeinfo['start_realization']."_".$tmp['data']['mr']."_".$noticeinfo['turn']."_".$max_id_bid;
+							$bid['bid_cipher'] = $bid_login;
 							// регистрируем пользователя
 							$user = array();
-							$user['login'] = "2012-".$tmp['data']['mr']."-".$id;
+							$user['login'] = $bid_login;
 							$password = $this->generate_password(6);
 							$user['passwd'] = md5($password);
 							$user['type-face'] = $tmp['data']['type-face'];
@@ -549,7 +563,6 @@ class ManagerUser{
 							$user['email'] = $tmp['data']['email'];
 							$user_id = $this->addUser(0, $user);
 							// обновляем заявку
-							$bid = array();
 							$bid['user_id'] = $user_id['user_id'];
 							/*if ($tmp['data']['type-face'] == 'fiz') {
 								$bid['applicant_individual_id'] = $user_id['org_ind_id'];

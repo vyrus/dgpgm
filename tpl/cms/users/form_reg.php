@@ -1,6 +1,5 @@
 <?
 $_TPL['TITLE'] [] = 'Регистрация нового пользователя';
-
 include TPL_CMS."_header.php";
 
 ?>
@@ -8,7 +7,7 @@ include TPL_CMS."_header.php";
 <script>
 $(document).ready(function () {
 	
-	function showMr(pp_id)
+	function showMr(pp_id, mr_id)
     {
 		// ничего не выбранно
         if (pp_id == '0') {
@@ -32,10 +31,14 @@ $(document).ready(function () {
 					//массив отдаст id и title
                     $(result.measure).each(function() {
 						var num_m = $(this).attr('id');
+						var s_d = '';
 						if (num_m == 0) {
 							num_m = '';
 						}
-                        options += '<option value="' + $(this).attr('id') + '">' + num_m + ' ' + $(this).attr('title') + '</option>';
+						if (mr_id == num_m) {
+							s_d = ' selected="selected"';
+						}
+                        options += '<option value="' + $(this).attr('id') + '"'+ s_d + '>' + num_m + ' ' + $(this).attr('title') + '</option>';
                     });
                     $('#mr').html(options);
                     //$('#mr').attr('disabled', false);
@@ -50,12 +53,15 @@ $(document).ready(function () {
 		showMr(pp_id);
 	});
 	
-	<? if (isset($_TPL['ROW']['mr'])) {?>
-		showMr(<?=$_TPL['ROW']['mr']?>);
-	<?}?>
+	<? if (isset($_TPL['ROW']['pp']) && isset($_TPL['ROW']['mr'])) {?>
+		showMr(<?=$_TPL['ROW']['pp']?>, <?=$_TPL['ROW']['mr']?>);
+	<?} elseif (isset($_TPL['ROW']['pp'])) {?>
+		showMr(<?=$_TPL['ROW']['pp']?>, false);
+	<?} ?>
 		
 });
 </script>
+
 <h1>Регистрация</h1>
 <p>Уважаемый Гость!</p>
 <p>Вы зашли на страницу регистрации Участников конкурса на формирование тематики на выполнение НИР (НИОКР) объявленного в рамках реализации мероприятий Государственной программы города Москвы "Градостроительная политика" на 2012-2016 г.</p>

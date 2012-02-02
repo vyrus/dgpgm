@@ -7,8 +7,6 @@ header("Cache-Control: post-check=0,pre-check=0");
 header("Cache-Control: max-age=0");
 header("Pragma: no-cache");
 
-
-
 if (!empty($_POST['s'])){
     header('Location: /search_1_'.urlencode($_POST['s'])); exit; 
 }

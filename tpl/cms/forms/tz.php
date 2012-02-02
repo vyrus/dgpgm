@@ -3,9 +3,19 @@
 $_TPL['TITLE'] [] = 'Формирование тематики';
 include TPL_CMS."_header.php";
 ?>
+<style>
+.claro .dijitDialogTitleBar {
+  background-color: #BDC6D5;
+}
+</style>
+
 <script>
 // Load the Tooltip & Dialog widget class
 dojo.require("dijit.Tooltip");
+dojo.require("dijit.Dialog");
+
+var myDialog;
+var cont = '';
 
 dojo.ready(function()
 {
@@ -34,6 +44,41 @@ dojo.ready(function()
             animation.play(); // start it up
         }
     }
+
+    /* preventing message on changing dates*/
+    dojo.body().className = "claro";
+
+    myDialog = new dijit.Dialog({
+        title: "Данные работы по этапу",
+        content: cont,
+        style: "width:600px;"
+    });
+
+    var yearStart = dojo.query("select[name=yearstart]")[0].value;
+    var yearEnd = dojo.query("select[name=yearend]")[0].value;
+    var monthStart = dojo.query("select[name=monthstart]")[0].value;
+    var monthEnd = dojo.query("select[name=monthend]")[0].value;
+    dojo.connect(dojo.byId("tzf"),"onsubmit", function(e)
+    {
+        dojo.stopEvent(e);
+        if ((yearStart != dojo.query("select[name=yearstart]")[0].value) || (yearEnd != dojo.query("select[name=yearend]")[0].value))
+        {
+            myDialog.set("content",
+                         "Вы изменили годы начала или окончания работ. Календарный план будет изменен. <br /><input type='button' value='Продолжить'  onclick='dojo.byId(\"tzf\").submit(); myDialog.hide();'><input type='button' value='Отменить' onclick='myDialog.hide();dojo.stopEvent(e);'>");
+            myDialog.show();
+        } else
+        {
+            if ((monthStart != dojo.query("select[name=monthstart]")[0].value) || (monthEnd != dojo.query("select[name=monthend]")[0].value))
+            {
+                myDialog.set("content", "Вы изменили месяцы начала и окончания работ. В календарном плане вам необходимо внести изменения в сроки работ по этапам вручную<br /><input type='button' value='Продолжить' onclick='myDialog.hide(); dojo.byId(\"tzf\").submit();'>");
+                myDialog.show();
+            } else
+            { dojo.byId("tzf").submit();
+            }
+        }
+
+    })
+    /* eo preventing message on changing dates*/
 
 //    fojo.query("input[type='text']").foreach( function(node,i,nodelist){node.value = blockQuote(node.value);});
     findElements(); setTooltips();
@@ -155,10 +200,11 @@ function blockQuote(s)
 		</table> -->
     </td>
   </tr>
+<!--
   <tr>
     <td>Общая стоимость работ, тыс. руб.:</td>
     <td><input type="text" name="price_works_actual" value="<?=(isset($TPL['INFO']['price_works_actual']))? $TPL['INFO']['price_works_actual']:''?>"></td>
-  </tr>
+  </tr>-->
   <tr>
     <td>Цели выполнения работ:<br /><a id="workpurpose_plus">[добавить]</a></td>
     <td> <?
@@ -228,7 +274,8 @@ function blockQuote(s)
     </td>
   </tr>
   <tr>
-    <td colspan="2"><input type="submit" value="Сохранить данные формы" name="tzinsert"></td>
+    <td colspan="2"><input type="submit" value="Сохранить данные формы" name="tzinsert">
+    <input type="hidden" value="1" name="tzinsert"></td>
   </tr>
 </table>
 </form>

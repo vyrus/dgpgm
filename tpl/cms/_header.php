@@ -28,7 +28,7 @@
     });
 
   });
-  
+
     /* highlight control elements  подсветка элементов управления. если выглядит позорно, то удалить этот блок до закрывающего коммента*/
     dojo.require("dojo.fx.easing");
     var controlElaments = new dojo.NodeList();

@@ -12,6 +12,7 @@
 			<?
 				include "tpl/cms/users/form_login.php";
 			?>	
+			
 			<? if(USER_ID == 1) { ?>
 				<ul class="tabs"><li class="<?=($action=='reg')?'current':'hover'?>"><a href="/reg"><img border="0" src="/adm/icon/attension.png"> Шаг 1<br>Регистрация</a></li>
 					<li class="">Шаг 2<br>Данные о заявителе</li>

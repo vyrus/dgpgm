@@ -20,7 +20,7 @@ table.table td {
     <td>Наименование работ/услуг</td>
     <td>Краткое описание выполняемых работ/услуг</td>
     <td>Срок выполнения работ/услуг (количество месяцев со дня заключения госконтракта)</td>
-	<td>Стоимость работ, руб.</td>
+	<td>Стоимость работ, тыс. руб.</td>
   </tr>
 <?	$nn=1;
 foreach ($array as $year=>$data)
@@ -44,7 +44,7 @@ foreach ($array as $year=>$data)
 			<td><?=$work_data['title']?></td>
 			<td><?=$work_data['description']?></td>
 			<? if ($i==0) { ?><td<?=$rowspan?>><?=MonthsName($work_data['start_month'])?> <?=$year?> г. - <?=MonthsName($work_data['finish_month'])?> <?=$year?> г.</td><? } ?>
-			<? if ($i==0) { ?><td<?=$rowspan?>><?=$work_data['cost']?></td><? } ?>
+			<? if ($i==0) { ?><td<?=$rowspan?>><?=round((($TPL['INFO']['price_works_actual']*$work_data['cost'])/100)/1000, 2)?></td><? } ?>
 		</tr>
 		<?	$i++;
 			} ?>
