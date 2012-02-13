@@ -174,17 +174,18 @@ require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
     }
                 
     structCells[2] = [];
-    var prop_values = first_sp_props_values[0].values;
-    for (var year in prop_values)
+    var prop_idx, property, year;
+    for (prop_idx in firstEntry.content)
     {
-        if (!isNaN(year)) 
+        property = firstEntry.content[prop_idx];
+        for (year in property.values)
         {
-            structCells[2].push(        
-            { // third row
-                    name : year,
-                    width : 'auto',
-                    field : year
-            });        
+            structCells[2].push({
+                // third row
+                name: year,
+                width: 'auto',
+                field: year
+            }); 
         }
     }
     /* eo structure making*/
