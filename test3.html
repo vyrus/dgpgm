@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Tutorial: Hello Dojo!</title>
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/resources/dojo.css">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/grid/resources/claroGrid.css">
+    <style>
+#grid {
+    height: 300px;
+    width: 560px;
+}
+* {
+    outline: medium none !important;
+}
+body {
+    background: none repeat scroll 0 0 white;
+    color: #333333;
+    font-family: Lucida Sans,Lucida Grande,Arial !important;
+    font-size: 13px !important;
+    margin: 0;
+    padding: 2em;
+}
+button {
+    background-color: #E4F2FF;
+    background-image: url("http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/claro/form/images/button.png");
+    background-position: center top;
+    background-repeat: repeat-x;
+    border: 1px solid #769DC0;
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+    font-size: 1em;
+    padding: 2px 8px 4px;
+}
+button:hover {
+    background-color: #AFD9FF;
+    color: #000000;
+}
+h1 {
+    font-size: 1.5em;
+}
+    </style>
+    <!-- load Dojo, baseless -->
+    <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js"
+            data-dojo-config="async: true">
+    </script>
+
+<script>
+var store;
+var dataStore;
+var data = {
+	pId :
+	{
+	    title: "pTitle",
+	    content:
+	    [
+	        {
+	            propTitle: "propTitle1",
+	            values: {"2012": "v2012","2013": "v2033","2014": "v2014"}
+	        },
+	        {
+	            propTitle: "propTitle1",
+	            values: {"2012": "v2012","2013": "v2033","2014": "v2014"}
+	        }
+	    ]
+	},
+	mId :
+	{
+	    title: "pTitle",
+	    content:
+	    [
+	        {
+	            propTitle: "propTitle1",
+	            values: {"2012": "v2012","2013": "v2033","2014": "v2014"}
+	        },
+	        {
+	            propTitle: "propTitle1",
+	            values: {"2012": "v2012","2013": "v2033","2014": "v2014"}
+	        }
+	    ]
+	}
+}
+  
+function num_values(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+ 
+
+var firstEntry; 
+for (var i in data)
+{
+	firstEntry = data[i];
+	break;
+}
+
+var propertiesCnt = firstEntry.content.length;
+var yearsCnt = num_values(firstEntry.content[0].values);
+
+var statTitle = 'Общая статистика по программе за 2012-20.. годы';
+
+require(["dojo/store/Memory","dojo/data/ObjectStore"],
+    function(Memory, ObjectStore)
+    {
+		//storage forming
+		var dataForStorage = [];
+		for (var p_or_m in data)
+		{
+		    for (var i in data[p_or_m].content)
+		    {
+		        var prop_data = {"p_or_m_title" : data[p_or_m].title} + data[p_or_m].content[i].value
+		        dataForStorage.push(prop_data);
+		    }
+		}
+
+        store = new Memory({data: dataForStorage, idProperty: "id"});
+        dataStore = new ObjectStore({ objectStore: store });
+    }
+)
+
+        // Don't access DOM until ready
+        require([  "dojox/grid/DataGrid",
+                   "dojo/domReady!"
+                ], function()
+                {
+				/*structure making*/
+				var structure = [];
+				var structureView = structure[0] = {
+				    cells: [],
+				    onBeforeRow : function(inDataIndex, inSubRows)
+				    {
+				            console.log("in onBeforeRow " + inDataIndex);
+				            console.info(inSubRows);
+				            if (inDataIndex >= 0)
+				            {
+				                    inSubRows[0].invisible = true;
+				                    inSubRows[1].invisible = true;
+				            } else
+				            {
+				                    inSubRows[0].invisible = false;
+				                    inSubRows[1].invisible = false;
+				            }
+				    }
+				};
+				var structCells = structureView.cells = [];
+				structCells[0] = [
+				    { //first row
+				        name : statTitle,
+				        width : 'auto',
+				        colSpan : yearsCnt * propertiesCnt + 1,
+				        headerClasses : "staticHeader"
+				    }
+				];
+				
+				structCells[1] = [
+				    { //second row
+				        name : 'Подпрограмма/Мероприятие',
+				        width : 'auto',
+				        rowSpan : 2,
+				        headerClasses : "staticHeader"
+				    }
+				];
+				
+				var first_sp_props_values = firstEntry.content;
+				for (var prop_val in first_sp_props_values)
+				{
+				    var propTitle = first_sp_props_values[prop_val].propTitle;
+				    structCells[1].push(
+				    {
+				        name : propTitle,
+				        width : 'auto',
+				        colSpan : yearsCnt,
+				        headerClasses : "staticHeader"
+				    });
+				}
+				
+				structCells[2] = [];
+				var prop_values = first_sp_props_values[0].values;
+				for (var year in prop_values)
+				{
+					if (!isNaN(year)) 
+					{
+						structCells[2].push(		
+						{ // third row
+					            name : year,
+					            width : 'auto',
+					            field : year
+					    });		
+					}
+				}
+				/* eo structure making*/
+
+                console.info(structure);
+
+                // create a new grid:
+                var grid4 = new dojox.grid.DataGrid(
+                {
+                        query : {},
+                        store : dataStore,
+//                        clientSort : true,
+                        rowSelector : '20px',
+                        structure : structure,
+                        id : "grid",
+                        // used to disable the click for sort on headers that are only for labeling
+/*                        onHeaderCellClick : function(e)
+                        {
+
+                                if (!dojo.hasClass(e.cell.id, "staticHeader"))
+                                {
+                                        e.grid.setSortIndex(e.cell.index);
+                                        e.grid.onHeaderClick(e);
+                                }
+                        }*/
+
+                }, document.createElement('div'));
+
+                // append the new grid to the div "gridContainer4":
+                dojo.byId("gridContainer").appendChild(grid4.domNode);
+
+                // Call startup, in order to render the grid:
+                grid4.startup();
+        });
+    </script>
+</head>
+<body class="claro">
+    <div id="gridContainer"></div>
+</body>
+</html>
