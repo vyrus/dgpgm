@@ -57,11 +57,11 @@ var data = {
         [
             {
                 propTitle: "propTitle1",
-                values: {"2012": "v2012","2013": "v2033","2014": "v2014"}
+                values: {"2012": "1-2012","2013": "1-2013","2014": "1-2014"}
             },
             {
                 propTitle: "propTitle2",
-                values: {"2012": "v2012","2013": "v2033","2014": "v2014"}
+                values: {"2012": "2-2012","2013": "2-2013","2014": "2-2014"}
             }
         ]
     },
@@ -72,11 +72,11 @@ var data = {
         [
             {
                 propTitle: "propTitle1",
-                values: {"2012": "v2012","2013": "v2033","2014": "v2014"}
+                values: {"2012": "3-2012","2013": "3-2013","2014": "3-2014"} 
             },
             {
                 propTitle: "propTitle2",
-                values: {"2012": "v2012","2013": "v2033","2014": "v2014"}
+                values: {"2012": "4-2012","2013": "4-2013","2014": "4-2014"} 
             }
         ]
     }
@@ -90,6 +90,9 @@ function num_values(obj) {
     return size;
 };
  
+function get_field_name(prop_name, year) {
+    return prop_name + '_' + year;
+}
 
 var firstEntry; 
 for (var i in data)
@@ -105,14 +108,25 @@ var statTitle = 'Общая статистика по программе за 20
 
 require(["dojo/store/Memory","dojo/data/ObjectStore"], function(Memory, ObjectStore) {
     //storage forming
-    var dataForStorage = [];
-    for (var p_or_m in data)
+    var dataForStorage = [], entry_idx, entry, entry_data, prop_idx, property,
+        year, field_name;
+    
+    for (entry_idx in data)
     {
-        for (var i in data[p_or_m].content)
+        entry = data[entry_idx];
+        entry_data = {title: entry.title};
+        
+        for (prop_idx in entry.content)
         {
-            var prop_data = {"p_or_m_title" : data[p_or_m].title} + data[p_or_m].content[i].value
-            dataForStorage.push(prop_data);
+            property = entry.content[prop_idx];
+            for (year in property.values)
+            {
+                field_name = get_field_name(property.propTitle, year);
+                entry_data[field_name] = property.values[year];
+            }
         }
+        
+        dataForStorage.push(entry_data);
     }
 
     store = new Memory({data: dataForStorage, idProperty: "id"});
@@ -125,7 +139,7 @@ require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
     var structure = [];
     var structureView = structure[0] = {
         cells: [],
-        onBeforeRow : function(inDataIndex, inSubRows)
+        /* onBeforeRow : function(inDataIndex, inSubRows)
         {
                 console.log("in onBeforeRow " + inDataIndex);
                 console.info(inSubRows);
@@ -138,7 +152,7 @@ require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
                         inSubRows[0].invisible = false;
                         inSubRows[1].invisible = false;
                 }
-        }
+        } */
     };
                 
     var structCells = structureView.cells = [];
@@ -153,10 +167,11 @@ require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
     
     structCells[1] = [
         { //second row
-            name : 'Подпрограмма/Мероприятие',
-            width : 'auto',
-            rowSpan : 2,
-            headerClasses : "staticHeader"
+            name: 'Подпрограмма/Мероприятие',
+            field: 'title',
+            //width: 'auto',
+            rowSpan: 2,
+            //headerClasses: "staticHeader"
         }
     ];
                 
@@ -174,7 +189,7 @@ require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
     }
                 
     structCells[2] = [];
-    var prop_idx, property, year;
+    var prop_idx, property, year, field_name;
     for (prop_idx in firstEntry.content)
     {
         property = firstEntry.content[prop_idx];
@@ -184,7 +199,7 @@ require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
                 // third row
                 name: year,
                 width: 'auto',
-                field: year
+                field: get_field_name(property.propTitle, year)
             }); 
         }
     }
