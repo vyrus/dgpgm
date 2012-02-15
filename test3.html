@@ -7,9 +7,23 @@
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/claro/claro.css">
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/grid/resources/claroGrid.css">
     <style>
+/*
+.staticHeader
+{
+  color:red;
+    width: 400px;
+}
+
+.staticHeader2
+{
+    width: 40px;
+    color:#ff00ff;
+}
+*/
+
 #grid {
-    height: 300px;
-    width: 560px;
+    height: 700px;
+    width: 1660px;
 }
 * {
     outline: medium none !important;
@@ -57,11 +71,11 @@ var data = {
         [
             {
                 propTitle: "propTitle1",
-                values: {"2012": "1-2012","2013": "1-2013","2014": "1-2014"}
+                values: {"2012": "12012","2013": "12013","2014": "12014"}
             },
             {
                 propTitle: "propTitle2",
-                values: {"2012": "2-2012","2013": "2-2013","2014": "2-2014"}
+                values: {"2012": "22012","2013": "22013","2014": "22014"}
             }
         ]
     },
@@ -72,16 +86,16 @@ var data = {
         [
             {
                 propTitle: "propTitle1",
-                values: {"2012": "3-2012","2013": "3-2013","2014": "3-2014"} 
+                values: {"2012": "32012","2013": "32013","2014": "32014"}
             },
             {
                 propTitle: "propTitle2",
-                values: {"2012": "4-2012","2013": "4-2013","2014": "4-2014"} 
+                values: {"2012": "42012","2013": "42013","2014": "42014"}
             }
         ]
     }
 }
-  
+
 function num_values(obj) {
     var size = 0, key;
     for (key in obj) {
@@ -89,12 +103,18 @@ function num_values(obj) {
     }
     return size;
 };
- 
+
 function get_field_name(prop_name, year) {
-    return prop_name + '_' + year;
+    if (year == "sum")
+    {
+        return prop_name;
+    } else
+    {
+        return prop_name + '_' + year;
+    }
 }
 
-var firstEntry; 
+var firstEntry;
 for (var i in data)
 {
     firstEntry = data[i];
@@ -106,75 +126,91 @@ var yearsCnt = num_values(firstEntry.content[0].values);
 
 var statTitle = 'Общая статистика по программе за 2012-20.. годы';
 
-require(["dojo/store/Memory","dojo/data/ObjectStore"], function(Memory, ObjectStore) {
-    //storage forming
+require(["dojo/store/Memory","dojo/data/ObjectStore","dojox/grid/DataGrid", "dojo/domReady!"], function() {
+    /* storage forming*/
     var dataForStorage = [], entry_idx, entry, entry_data, prop_idx, property,
-        year, field_name;
-    
+        year, field_name, prop_sum;
+
     for (entry_idx in data)
     {
         entry = data[entry_idx];
         entry_data = {title: entry.title};
-        
+
         for (prop_idx in entry.content)
         {
+            prop_sum = 0;
             property = entry.content[prop_idx];
             for (year in property.values)
             {
                 field_name = get_field_name(property.propTitle, year);
                 entry_data[field_name] = property.values[year];
+                prop_sum += parseInt(property.values[year]);
             }
+            field_name = get_field_name(property.propTitle, "sum");
+            entry_data[field_name] = prop_sum;
         }
-        
+
         dataForStorage.push(entry_data);
     }
 
-    store = new Memory({data: dataForStorage, idProperty: "id"});
-    dataStore = new ObjectStore({ objectStore: store });
-})
+    store = new dojo.store.Memory({data: dataForStorage, idProperty: "id"});
+    dataStore = new dojo.data.ObjectStore({ objectStore: store });
+    /*eo  storage forming*/
 
-// Don't access DOM until ready
-require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
     /*structure making*/
     var structure = [];
     var structureView = structure[0] = {
+        //defaultCell: { width: "840px" },
         cells: [],
-        /* onBeforeRow : function(inDataIndex, inSubRows)
+/*
+        onBeforeRow : function(inDataIndex, inSubRows)
         {
                 console.log("in onBeforeRow " + inDataIndex);
-                console.info(inSubRows);
                 if (inDataIndex >= 0)
                 {
+console.info(inSubRows[1]);
+console.info(inSubRows[1].invisible);
+console.info(inSubRows[1].rowSpan);
+console.info("-----------");
+console.info(inSubRows[1][0]);
+console.info(inSubRows[1][0].invisible);
+console.info(inSubRows[1][0].rowSpan);
                         inSubRows[0].invisible = true;
-                        inSubRows[1].invisible = true;
+                        inSubRows[1][0].invisible = false;
+                        inSubRows[1][1].customStyles.push("background: #808080;color:white;font-size:10pt;");
+                        inSubRows[1][2].customStyles.push("background: #808080;color:white;font-size:10pt;");
+                        inSubRows[2].customStyles += "color:blue;";
+console.info(inSubRows[1][1]);
+console.info(inSubRows[1][1].customStyles);
+console.info(inSubRows[2]);
                 } else
                 {
                         inSubRows[0].invisible = false;
                         inSubRows[1].invisible = false;
                 }
-        } */
+        }*/
     };
-                
+
     var structCells = structureView.cells = [];
     structCells[0] = [
         { //first row
             name : statTitle,
-            width : 'auto',
-            colSpan : yearsCnt * propertiesCnt + 1,
+            //width : 'auto',
+            colSpan : (yearsCnt+1) * propertiesCnt + 1,
             headerClasses : "staticHeader"
         }
     ];
-    
+
     structCells[1] = [
         { //second row
             name: 'Подпрограмма/Мероприятие',
             field: 'title',
-            //width: 'auto',
+            //width: '40px',
             rowSpan: 2,
-            //headerClasses: "staticHeader"
+            headerClasses: "staticHeader"
         }
     ];
-                
+
     var first_sp_props_values = firstEntry.content;
     for (var prop_val in first_sp_props_values)
     {
@@ -182,12 +218,12 @@ require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
         structCells[1].push(
         {
             name : propTitle,
-            width : 'auto',
-            colSpan : yearsCnt,
+            colSpan : yearsCnt+1,
+            //width: 'auto',
             headerClasses : "staticHeader"
         });
     }
-                
+
     structCells[2] = [];
     var prop_idx, property, year, field_name;
     for (prop_idx in firstEntry.content)
@@ -199,9 +235,16 @@ require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
                 // third row
                 name: year,
                 width: 'auto',
+                headerClasses : "staticHeader2",
                 field: get_field_name(property.propTitle, year)
-            }); 
+            });
         }
+        structCells[2].push({
+            // third row
+            name: "Итого",
+//            width: '40px',
+            field: get_field_name(property.propTitle, "sum")
+        });
     }
     /* eo structure making*/
 
@@ -217,15 +260,15 @@ require(["dojox/grid/DataGrid","dojo/domReady!"], function() {
             structure : structure,
             id : "grid",
             // used to disable the click for sort on headers that are only for labeling
-/*                        onHeaderCellClick : function(e)
+                        onHeaderCellClick : function(e)
             {
-
+                 return false;
                     if (!dojo.hasClass(e.cell.id, "staticHeader"))
                     {
                             e.grid.setSortIndex(e.cell.index);
                             e.grid.onHeaderClick(e);
                     }
-            }*/
+            }
 
     }, document.createElement('div'));
 
