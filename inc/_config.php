@@ -40,7 +40,7 @@
 	define ('FK_APP_IND', 'applicant_individual');
 	define ('FK_APP_ORG', 'applicant_organization');	
 	define ('FK_BID', 'bid');
-	
+	define ('FK_MEASURE', 'measure');
 	
    $user=& new ManagerUser($db);
    $user->SetField(array('domain'=>$_SERVER['SERVER_NAME']));
@@ -56,7 +56,14 @@
         if (!count($tmp['error'])){
             //header('Location: http://'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']); exit;
 			$u_data=$user->GetUserData(SESSION_ID);
-			header('Location: http://'.$_SERVER['SERVER_NAME'].'/forms/bid/'.$u_data['bid_id']); exit;
+			// редиректы
+			if ($u_data['group_id'] == 2) {
+				header('Location: http://'.$_SERVER['SERVER_NAME'].'/forms/bid/'.$u_data['bid_id']); exit;
+			} elseif ($u_data['group_id'] == 3) {
+				header('Location: http://'.$_SERVER['SERVER_NAME'].'/adm/'); exit;
+			} elseif ($u_data['group_id'] == 5) {
+				header('Location: http://'.$_SERVER['SERVER_NAME'].'/stats'); exit;
+			}
         }
 	}
 

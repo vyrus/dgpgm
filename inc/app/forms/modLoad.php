@@ -4,7 +4,6 @@ define ('TPL_CMS_FORMS', 'tpl/cms/forms/');
 define ('TPL_ADMIN_FORMS', "tpl/admin/forms/");
 
 define ('FK_SUBPROGRAM', 'subprogram');
-define ('FK_MEASURE', 'measure');
 define ('FK_NOTICE', 'notice');
 define ('FK_MEASURE_HAS_NOTICE', 'measure_has_notice');
 define ('FK_WORK_STEP', 'work_step');

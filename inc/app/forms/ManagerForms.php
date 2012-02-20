@@ -377,7 +377,6 @@ class ManagerForms{
         foreach ($steps as $step)
         {
             $last_steps[$step['year']] = $step['step_number'];
-
             $cost_sum += $step['cost'];
         }
 
@@ -404,7 +403,7 @@ class ManagerForms{
                     }
                 }
                 // last step in year
-                if ($last_step['year'] != $step['year'])
+                if ($last_steps[$step['year']] == $step['step_number'])
                 {
                     if ($step['finish_month'] != 12) {$errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата окончания этапа"); }
                 }
@@ -416,17 +415,18 @@ class ManagerForms{
                 if ($step['start_month'] != $prev_step['finish_month'] + 1 && $step['start_month'] != $prev_step['finish_month']) {
                     $errors[] = array('startmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата начала этапа");
                 }
-
                 // not first step
                 if ($last_steps[$step['year']] != $step['step_number'])
                 {
-                    if ($step['finish_month']<2 && $step['finish_month']>12) {$errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата окончания этапа"); };
+                    if ($step['finish_month']<2 || $step['finish_month']>12) {$errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата окончания этапа"); };
                 } else
                 {
                   // last step in year
                   if ($last_step['year'] != $step['year']) {if ($step['finish_month'] != 12) {$errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Неправильно указана дата окончания этапа"); }};
                 }
             }
+            if ($step['start_month']>$step['finish_month']) {$errors[] = array('finishmonth_'.$bid_id."_".$step['id'], "Дата окончания этапа не должна быть меньше даты начала"); };
+
             $prev_step = $step;
             $cur_year = $step['year'];
         }

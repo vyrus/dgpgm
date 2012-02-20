@@ -25,6 +25,12 @@ RewriteRule ^forms/bid/([0-9]+)/other-price$ index.php?mod=forms&action=other-pr
 RewriteRule ^forms/bid/([0-9]+)/print$ index.php?mod=forms&action=print&id=$1
 RewriteRule ^forms/bid/([0-9]+)/printandsubmit$ index.php?mod=forms&action=printandsubmit&id=$1
 
+RewriteRule ^stats$ index.php?mod=stats
+RewriteRule ^stats/total$ index.php?mod=stats&action=total
+RewriteRule ^stats/course$ index.php?mod=stats&action=course
+RewriteRule ^stats/finance$ index.php?mod=stats&action=finance
+
+
 RewriteRule ^article([0-9]*)$ index.php?mod=article&action=view&id=$1
 RewriteRule ^help$ article73
 RewriteRule ^article([0-9]*)_page([0-9]*)$ index.php?mod=article&action=view&id=$1&page=$2

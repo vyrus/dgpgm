@@ -15,9 +15,10 @@
 <link href="<?=$GLOBALS['p']?>files/css/style.css" rel="stylesheet" type="text/css" media="screen" />
 <!--<link rel="shortcut icon" href="<?=$GLOBALS['p']?>files/images/favicon.ico" type="image/x-icon" />-->
 <script src="http://code.jquery.com/jquery-latest.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" data-dojo-config="parseOnLoad:true"></script>
-<script src="/files/js/cal.js"></script>
+<!--<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" data-dojo-config="parseOnLoad:true"></script>-->
+<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js" type="text/javascript"></script>
 
+<script src="/files/js/cal.js"></script>
 <!-- use the "claro" theme -->
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dijit/themes/claro/claro.css">
 <script>
@@ -56,12 +57,11 @@
         );
     }
 
-    dojo.ready(function()
+    require(["dojo/domReady!"], function() 
     {
         highlightControlElements();
-    })
+    });
     /* eo highlight control elements*/
-
   </script>
 </head>
 <body class="claro">

@@ -13,7 +13,7 @@
 				include "tpl/cms/users/form_login.php";
 			?>	
 			
-			<? if(USER_ID == 1) { ?>
+			<? if(USER_GROUP == 4) { ?>
 				<ul class="tabs"><li class="<?=($action=='reg')?'current':'hover'?>"><a href="/reg"><img border="0" src="/adm/icon/attension.png"> Шаг 1<br>Регистрация</a></li>
 					<li class="">Шаг 2<br>Данные о заявителе</li>
 					<li class="">Шаг 3<br>Техническое задание</li>
@@ -21,10 +21,27 @@
 					<li class="">Шаг 5<br>Обоснование цены</li>
 					<li class="">Шаг 6<br>Печать и отправка</li>
 				</ul>
-			<? } else { ?>
+			<? } elseif (USER_GROUP == 2) { ?>
 				<?=$_TPL['BIDMENU']?>
+			<? } elseif (USER_GROUP == 5) { ?>
+			<ul>
+				<li>Программа
+				<ul>
+					<li><a href="/stats/total">Общая статистика</a></li>
+				</ul>
+				</li>
+				<li>Заявочная кампания
+				<ul>
+					<li><a href="/stats/course">Ход заявочной кампании</a></li>
+				</ul>
+				</li>
+				<li>Госконтракты
+				<ul>
+					<li><a href="/stats/finance">План финансирования работ</a></li>
+				</ul>
+				</li>
+			<ul>
 			<? } ?>
-			
 		</div>
 		<!-- Правая колонка конец-->
         <!-- Футер -->

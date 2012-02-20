@@ -59,6 +59,10 @@ if (!empty($_POST['s'])){
 			$site = new ManagerUser($db);
 			$site->work();
 		break;
+		case "stats":
+			$site = new ManagerStats($db);
+			$site->work();
+		break;
 		case "forms":
 			$forms->work();
 		break;
