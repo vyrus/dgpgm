@@ -31,39 +31,39 @@ if (true) {
         $sp_condition = 'and m.subprogram_id = '.$subProgram;
     }
     /*remake query because 1 sentence doesn't work*/
-	$sql=sql_placeholder('
+	$sql = sql_placeholder('
         SELECT *
-        FROM
+        FROM (
+            SELECT mp.measure_id, mp.year, (mp.financing DIV 1000) financing, 
+                   mp.gk_count, mp.tender_count, sp.title spt, m.title mt
+            FROM ?#FK_MEASURE_PLAN mp, ?#FK_MEASURE m, ?#FK_SUBPROGRAM sp
+            WHERE mp.measure_id = m.id AND
+                  m.subprogram_id = sp.id
+                  ' . $sp_condition . ' AND
+                  mp.year BETWEEN ? AND ?
+        ) tab1
 
-        (select mp.measure_id, mp.year, (mp.financing DIV 1000) financing, mp.gk_count, mp.tender_count, sp.title spt, m.title mt
-        from ?#FK_MEASURE_PLAN mp, ?#FK_MEASURE m, ?#FK_SUBPROGRAM sp
-        where mp.measure_id = m.id
-        and m.subprogram_id = sp.id
-        '.$sp_condition.'
-        and mp.year between ? and ?) tab1
+        LEFT JOIN (
+            SELECT (SUM(sum) DIV 1000) financed, count(gk.number) gk_commited, 
+                   gk.measure_id
+            FROM `payment_order` po, stepGK sgk, GK gk
+            WHERE `status` <> "отменено" AND
+                  po.stepGK_id = sgk.id AND
+                  sgk.GK_id = gk.id
+            GROUP BY gk.measure_id
+        ) tab2 
+        ON (tab1.measure_id = tab2.measure_id)
 
-        left join
+        LEFT JOIN (
+            SELECT count(t.title) tender_commited, t.measure_id
+            FROM tender t
+            WHERE /* YEAR(t.estimation_date) = tab1.year AND */ 
+                  t.estimation_date < DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+            GROUP BY t.measure_id
+        ) tab3
+        ON (tab1.measure_id = tab3.measure_id)
 
-        (SELECT (SUM(sum) DIV 1000) financed, count(gk.number) gk_commited, gk.measure_id
-        FROM `payment_order` po, stepGK sgk, GK gk
-        WHERE `status`<>"отменено"
-        AND po.stepGK_id = sgk.id
-        AND sgk.GK_id = gk.id
-        GROUP BY gk.measure_id) tab2
-
-        on (tab1.measure_id = tab2.measure_id)
-
-        left join
-
-        (SELECT count(t.title) tender_commited, t.measure_id
-        FROM tender t
-        WHERE /* YEAR(t.estimation_date) = tab1.year
-        AND */ t.estimation_date < DATE_SUB(CURDATE(),INTERVAL 1 DAY)
-        GROUP BY t.measure_id) tab3
-
-        on (tab1.measure_id = tab3.measure_id)
-
-        order by tab1.measure_id, tab1.year', $startYear, $finishYear);
+        ORDER BY tab1.measure_id, tab1.year', $startYear, $finishYear);
 
     $work_steps = $this->db->_array_data($sql);
     if (!empty($work_steps))
