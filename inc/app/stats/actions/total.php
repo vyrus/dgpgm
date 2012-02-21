@@ -1,5 +1,5 @@
 <?
-if (true) {
+
 //	if (USER_GROUP == 5) {
     if ($_POST) {
     /*chosen subprogtam*/
@@ -35,7 +35,8 @@ if (true) {
         SELECT *
         FROM (
             SELECT mp.measure_id, mp.year, (mp.financing DIV 1000) financing, 
-                   mp.gk_count, mp.tender_count, sp.title spt, m.title mt
+                   mp.gk_count, mp.tender_count, sp.id sp_id, sp.title spt, 
+                   m.title mt
             FROM ?#FK_MEASURE_PLAN mp, ?#FK_MEASURE m, ?#FK_SUBPROGRAM sp
             WHERE mp.measure_id = m.id AND
                   m.subprogram_id = sp.id
@@ -72,98 +73,77 @@ if (true) {
         $data = array();
         $first_measure = true;
 
-        foreach($reportPropsNames as $prop_name)
-        {
-            $$prop_name = array();
-        }
-/*        $tender_count = array();
-        $gk_count = array();
-        $financing = array();
-        $financed = array();
-        $gk_commited = array();
-        $tender_commited = array();*/
-
-        foreach($work_steps as $measure_data)
-        {
-            if ($cur_measure['measure_id'] != $measure_data['measure_id'] && (!$first_measure))
-            {
-                /*end old measure array*/
-                $data[$cur_measure['measure_id']]['title'] = $cur_measure['mt'];
-//                $data[$cur_measure['measure_id']]['content'] = array($named_financing,$named_financed,$named_tender_count,$named_tender_commited,$named_gk_count,$named_gk_commited);
-                $data[$cur_measure['measure_id']]['content'] = array();
-
-                foreach($reportPropsNames as $prop_name)
-                {
-                    $var_name = "named_".$prop_name;
-                    $$var_name = array("propTitle"=>$possiblePropsNames[$prop_name],"values"=>$$prop_name);
-                    array_push($data[$cur_measure['measure_id']]['content'], $$var_name);
+        /* 
+         * Значения показателей собранные для текущего мероприятия, в формате 
+         * prop_name => array(prop_values) 
+         */
+        $prop_values = array();
+        
+        function group_by($items, $indicator_name) {
+            $indicator = null;
+            $groups = array();
+            $group = array();
+            
+            foreach ($items as $item) {
+                if ($indicator == null) {
+                    $indicator = $item[$indicator_name];
                 }
-/*
-                $named_tender_count = array("propTitle"=>"Количество конкурсов (план)","values"=>$tender_count);
-                $named_gk_count = array("propTitle"=>"Количество заключенных контрактов (план)","values"=>$gk_count);
-                $named_financing = array("propTitle"=>"Финансирование (план), тыс.руб.","values"=>$financing);
-                $named_financed = array("propTitle"=>"Профинансировано, тыс. руб.","values"=>$financed);
-                $named_gk_commited = array("propTitle"=>"Заключено госконтрактов","values"=>$gk_commited);
-                $named_tender_commited = array("propTitle"=>"Проведено конкурсов","values"=>$tender_commited);
-
-                $data[$cur_measure['measure_id']]['title'] = $cur_measure['mt'];
-                $data[$cur_measure['measure_id']]['content'] = array($named_financing,$named_financed,$named_tender_count,$named_tender_commited,$named_gk_count,$named_gk_commited);*/
-
-                /*new measure*/
-                $cur_measure = $measure_data;
-                $data[$cur_measure['measure_id']] = array('title'=>'', 'content'=>array());
-                $tender_count = array();
-                $gk_count = array();
-                $financing = array();
+                
+                if ($item[$indicator_name] != $indicator) {
+                    $indicator == null;
+                    $groups[] = $group;
+                    $group = array();
+                }
+                
+                $group[] = $item;
             }
-            if ($first_measure)
-            {
-                $first_measure = false;
-                $cur_measure = $measure_data;
-            }
-            foreach($reportPropsNames as $prop_name)
-            {
-                ${$prop_name}[$measure_data['year']] = $measure_data[$prop_name];
-            }
-/*            $tender_count[$measure_data['year']] = $measure_data['tender_count'];
-            $gk_count[$measure_data['year']] = $measure_data['gk_count'];
-            $financing[$measure_data['year']] = $measure_data['financing'];
-            $financed[$measure_data['year']] = $measure_data['financed'];
-            $gk_commited[$measure_data['year']] = $measure_data['gk_commited'];
-            $tender_commited[$measure_data['year']] = $measure_data['tender_commited'];*/
+            
+            return $groups;
         }
-        /*end old measure array*/
-        $data[$cur_measure['measure_id']]['title'] = $cur_measure['mt'];
-//                $data[$cur_measure['measure_id']]['content'] = array($named_financing,$named_financed,$named_tender_count,$named_tender_commited,$named_gk_count,$named_gk_commited);
-        $data[$cur_measure['measure_id']]['content'] = array();
-
-        foreach($reportPropsNames as $prop_name)
-        {
-            $var_name = "named_".$prop_name;
-            $$var_name = array("propTitle"=>$possiblePropsNames[$prop_name],"values"=>$$prop_name);
-            array_push($data[$cur_measure['measure_id']]['content'], $$var_name);
+        
+        $measures = group_by($work_steps, 'measure_id');
+        
+        foreach ($measures as $measure_steps) {
+            /* Значения показателей по году в формате:
+             * prop_name => array(year => array(prop_value)) 
+             */
+            $prop_values = array();
+            
+            foreach ($measure_steps as $step) {
+                $year = $step['year'];
+                    
+                foreach($reportPropsNames as $prop_name) {
+                    $prop_values[$prop_name][$year] = $step[$prop_name];
+                }
+            }  
+            
+            $content = array();
+            
+            foreach ($reportPropsNames as $prop_name) {
+                $content[] = array('propTitle' => $possiblePropsNames[$prop_name],
+                                   'values'    => $prop_values[$prop_name]);
+            }
+            
+            $step = reset($measure_steps);
+            $measure_id = $step['measure_id'];
+            $data[$measure_id] = array('title'   => $step['mt'], 
+                                       'content' => $content);
         }
-/*        $named_tender_count = array("propTitle"=>"Количество конкурсов (план)","values"=>$tender_count);
-        $named_gk_count = array("propTitle"=>"Количество заключенных контрактов (план)","values"=>$gk_count);
-        $named_financing = array("propTitle"=>"Финансирование (план), тыс.руб.","values"=>$financing);
-        $named_financed = array("propTitle"=>"Профинансировано, тыс. руб.","values"=>$financed);
-        $named_gk_commited = array("propTitle"=>"Заключено госконтрактов","values"=>$gk_commited);
-        $named_tender_commited = array("propTitle"=>"Проведено конкурсов","values"=>$tender_commited);
-        $data[$cur_measure['measure_id']]['title'] = $cur_measure['mt'];
-        $data[$cur_measure['measure_id']]['content'] = array($named_financing,$named_financed,$named_tender_count,$named_tender_commited,$named_gk_count,$named_gk_commited);*/
-    }
 
-    $TPL['DATA'] = json_encode($data);
-    $TPL['STATTITLE'] = 'Общая статистика по программе за '.$startYear.'-'.$finishYear.' годы';
-	include TPL_CMS_STATS."total-result.php";
-	} else {
+        $TPL['DATA'] = json_encode($data);
+        $TPL['STATTITLE'] = 'Общая статистика по программе за '.$startYear.'-'.$finishYear.' годы';
+	    include TPL_CMS_STATS."total-result.php";
+    } else {
     		$startYear = date('Y');
     		$start2Year = date('Y');
     		$endYear = 2016;
     		$TPL['SUBPROGRAM'] = ManagerForms::listSubprogram();
     		include TPL_CMS_STATS."total.php";
+    }
     } // end Post
-	} else {
+	/* 
+    } else {
     		include TPL_CMS_STATS."no-rights.php";
     }
+    */
 ?>
