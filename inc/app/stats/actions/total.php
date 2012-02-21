@@ -69,9 +69,7 @@
     $work_steps = $this->db->_array_data($sql);
     if (!empty($work_steps))
     {
-        $cur_measure = 0;
         $data = array();
-        $first_measure = true;
 
         /* 
          * Значения показателей собранные для текущего мероприятия, в формате 
@@ -79,6 +77,7 @@
          */
         $prop_values = array();
         
+        /* Группировка элементов по значению ключа-индикатора */
         function group_by($items, $indicator_name) {
             $indicator = null;
             $groups = array();
@@ -98,38 +97,95 @@
                 $group[] = $item;
             }
             
+            if (sizeof($group) > 0) {
+                $groups[] = $group;
+            }
+            
             return $groups;
         }
         
-        $measures = group_by($work_steps, 'measure_id');
+        /* Группируем годичные записи о мероприятиях по подпрограммам */
+        $subprograms = group_by($work_steps, 'sp_id');
         
-        foreach ($measures as $measure_steps) {
-            /* Значения показателей по году в формате:
-             * prop_name => array(year => array(prop_value)) 
-             */
-            $prop_values = array();
+        foreach ($subprograms as $subprogram_measures)
+        {
+            /* Суммарные знания показателей по годам для всей подпрограммы */
+            $subprogram_totals = array();
+            /* Временный массив для хранения данных мероприятий текущей подпрограммы */
+            $subprogram_data = array();
+            /* Группируем годичные записи по мероприятиям */
+            $measures = group_by($subprogram_measures, 'measure_id');
             
-            foreach ($measure_steps as $step) {
-                $year = $step['year'];
-                    
-                foreach($reportPropsNames as $prop_name) {
-                    $prop_values[$prop_name][$year] = $step[$prop_name];
+            foreach ($measures as $measure_years) {
+                /* 
+                 * Значения показателей по году в формате:
+                 * prop_name => array(year => array(prop_value)) 
+                 */
+                $prop_values = array();
+                
+                /* Перебираем годичные записи */
+                foreach ($measure_years as $record) {
+                    $year = $record['year'];
+                        
+                    /* Для всех выбранных показателей запоминаем значения */
+                    foreach($reportPropsNames as $prop_name) {
+                        $value = $record[$prop_name];
+                        
+                        if (!isset($prop_values[$prop_name])) {
+                            $prop_values[$prop_name] = array();
+                        }
+                        
+                        /* Запоминаем значения для текущего года */
+                        $prop_values[$prop_name][$year] = $value;
+                        
+                        if (!isset($subprogram_totals[$prop_name])) {
+                            $subprogram_totals[$prop_name] = array();
+                        }
+                        
+                        /* Обновляем суммарное значение у подпрограммы */
+                        $prop_total = & $subprogram_totals[$prop_name];
+                        if (!isset($prop_total[$year])) {
+                            $prop_total[$year] = $value;
+                        } else {
+                            $prop_total[$year] += $value;
+                        }
+                    }
+                }  
+                
+                /* Формируем список значений показателей мероприятия */
+                $content = array();
+                foreach ($reportPropsNames as $prop_name) {
+                    $content[] = array('propTitle' => $possiblePropsNames[$prop_name],
+                                       'values'    => $prop_values[$prop_name]);
                 }
-            }  
-            
-            $content = array();
-            
-            foreach ($reportPropsNames as $prop_name) {
-                $content[] = array('propTitle' => $possiblePropsNames[$prop_name],
-                                   'values'    => $prop_values[$prop_name]);
+                
+                /* Добавляем элемент во временный список */
+                $record = reset($measure_years);
+                $subprogram_data[] = array('title'   => $record['mt'],
+                                           'type'    => 'measure', 
+                                           'content' => $content);
             }
             
-            $step = reset($measure_steps);
-            $measure_id = $step['measure_id'];
-            $data[$measure_id] = array('title'   => $step['mt'], 
-                                       'content' => $content);
+            /* Формируем список значений показателей подпрограммы */
+            $content = array();
+            foreach ($reportPropsNames as $prop_name) {
+                $content[] = array('propTitle' => $possiblePropsNames[$prop_name],
+                                   'values'    => $subprogram_totals[$prop_name]);
+            }
+            
+            /* Добавляем элемент во итоговый список */
+            $data[] = array('title'   => '+++ ' . $record['spt'],
+                            'type'    => 'subprogram', 
+                            'content' => $content);
+            
+            /*
+             * И также переносим элементы из временного списка, чтобы записи о 
+             * меропритиях оказались после записей о подпрограммах
+             */      
+            $data = array_merge($data, $subprogram_data);
         }
-
+        
+        echo '<!--' . print_r($data, true) . '-->';
         $TPL['DATA'] = json_encode($data);
         $TPL['STATTITLE'] = 'Общая статистика по программе за '.$startYear.'-'.$finishYear.' годы';
 	    include TPL_CMS_STATS."total-result.php";
