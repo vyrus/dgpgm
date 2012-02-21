@@ -177,7 +177,7 @@
             }
             
             /* Добавляем элемент во итоговый список */
-            $data[] = array('title'   => '+++ ' . $record['spt'],
+            $data[] = array('title'   => $record['spt'],
                             'type'    => 'subprogram',
                             'content' => $content);
             

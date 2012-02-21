@@ -42,7 +42,7 @@ console.info(data);
         for (entry_idx in data)
         {
             entry = data[entry_idx];
-            entry_data = {title: entry.title};
+            entry_data = {title: entry.title, type: entry.type};
 
             for (prop_idx in entry.content)
             {
@@ -68,6 +68,7 @@ console.info(data);
    /*structure making*/
     var struct = {
         cells: [],
+        
         onBeforeRow : function(inDataIndex, inSubRows)
         {
                 console.log("in onBeforeRow " + inDataIndex);
@@ -76,6 +77,7 @@ console.info(data);
 
                 if (inDataIndex >= 0)
                 {
+                    
                     console.info(inSubRows[1]);
                     console.info(inSubRows[1].invisible);
                     console.info(inSubRows[1].rowSpan);
@@ -205,6 +207,18 @@ console.info(data);
         // append the new grid to the div "gridContainer4":
         dojo.byId("gridContainer").appendChild(grid4.domNode);
 
+        // Устанавливаем обработчки события, чтобы поменять стиль строк с 
+        // названиями подпрограмм
+        dojo.connect(grid4, "onStyleRow", function(row) {
+            var grid = this;
+            // get item
+            var item = grid.getItem(row.index);          
+                  
+            if (item.type == 'subprogram') {
+                row.customStyles += "background-color: #f3f9ff; font-weight: bold"; 
+            }
+        }); 
+        
         // Call startup, in order to render the grid:
         grid4.startup();
     });

@@ -29,6 +29,10 @@
         background-color: #AFD9FF;
         color: #000000;
     }
+    
+    .dojoxGridRowTable tr {
+        background: none !important;
+    }
 </style>
 
 <script>
