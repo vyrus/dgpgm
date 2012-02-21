@@ -39,7 +39,7 @@ for ($i=$start2Year; $i<=$endYear; $i++) { ?>
 
 <h2>Параметры вывода</h2>
 
-<input type="checkbox" name="number_gk" value="1" />  Детализировать по мероприятиям<br /><br />
+<input type="checkbox" name="detail_by_measures" value="1" />  Детализировать по мероприятиям<br /><br />
 
 <input type="submit" value="Сформировать отчет">
 

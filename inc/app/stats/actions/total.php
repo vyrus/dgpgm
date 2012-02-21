@@ -26,6 +26,9 @@
         }
     }
 
+    /* Выводить ли детализированный отчёт по мероприятиям */
+    $detailByMeasures = isset($_POST['detail_by_measures']) ? true : false;
+    
     if ($subProgram != 'all')
     {
         $sp_condition = 'and m.subprogram_id = '.$subProgram;
@@ -182,20 +185,23 @@
              * И также переносим элементы из временного списка, чтобы записи о 
              * меропритиях оказались после записей о подпрограммах
              */      
-            $data = array_merge($data, $subprogram_data);
+            if ($detailByMeasures) {
+                $data = array_merge($data, $subprogram_data);
+            }
         }
         
-        echo '<!--' . print_r($data, true) . '-->';
+        //echo '<!--' . print_r($data, true) . '-->';
         $TPL['DATA'] = json_encode($data);
         $TPL['STATTITLE'] = 'Общая статистика по программе за '.$startYear.'-'.$finishYear.' годы';
 	    include TPL_CMS_STATS."total-result.php";
+    }
+    
     } else {
     		$startYear = date('Y');
     		$start2Year = date('Y');
     		$endYear = 2016;
     		$TPL['SUBPROGRAM'] = ManagerForms::listSubprogram();
     		include TPL_CMS_STATS."total.php";
-    }
     } // end Post
 	/* 
     } else {
