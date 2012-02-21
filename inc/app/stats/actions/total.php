@@ -164,7 +164,7 @@
                 
                 /* Добавляем элемент во временный список */
                 $record = reset($measure_years);
-                $subprogram_data[] = array('title'   => $record['mt'],
+                $subprogram_data[] = array('title'   => $record['measure_id'] . ' ' . $record['mt'],
                                            'type'    => 'measure', 
                                            'content' => $content);
             }
