@@ -67,7 +67,7 @@
         ) tab3
         ON (tab1.measure_id = tab3.measure_id)
 
-        ORDER BY tab1.measure_id, tab1.year', $startYear, $finishYear);
+        ORDER BY tab1.sp_id, tab1.measure_id, tab1.year', $startYear, $finishYear);
 
     $work_steps = $this->db->_array_data($sql);
     if (!empty($work_steps))
@@ -92,7 +92,7 @@
                 }
                 
                 if ($item[$indicator_name] != $indicator) {
-                    $indicator == null;
+                    $indicator = null;
                     $groups[] = $group;
                     $group = array();
                 }
@@ -178,7 +178,7 @@
             
             /* Добавляем элемент во итоговый список */
             $data[] = array('title'   => '+++ ' . $record['spt'],
-                            'type'    => 'subprogram', 
+                            'type'    => 'subprogram',
                             'content' => $content);
             
             /*
