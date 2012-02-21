@@ -118,19 +118,19 @@ console.info(data);
     // Ширина для колонки "Подпрограмма/Мероприятие"
     row.push({width: "350px"});
 
-    // Определяем общее количество колонок со значениями показетелей
+    // Определяем общее количество колонок со значениями показателей
     var num_value_cells = (yearsCnt + 1) * propertiesCnt;
 
     // Добавляем в первую строку нужное их количество
     for (var i = 0; i < num_value_cells; i++) {
-        row.push({width: "50px"});
+        row.push({width: (yearsCnt > 1 ? "70px" : "100px")});
     }
     struct.cells.push(row);
-
+    
     row = [
         { //first row
             name : statTitle,
-            colSpan : (yearsCnt+1) * propertiesCnt + 1,
+            colSpan : (yearsCnt + (yearsCnt > 1) * 1) * propertiesCnt + 1,
             headerClasses : "staticHeader"
         }
     ];
@@ -151,7 +151,7 @@ console.info(data);
         var propTitle = first_sp_props_values[prop_val].propTitle;
         row.push({
             name: propTitle,
-            colSpan: yearsCnt + 1,
+            colSpan: yearsCnt + (yearsCnt > 1) * 1,
             headerClasses: "staticHeader"
         });
     }
@@ -172,11 +172,14 @@ console.info(data);
                 field: get_field_name(property.propTitle, year)
             });
         }
-        row.push({
-            // third row
-            name: "Итого",
-            field: get_field_name(property.propTitle, "sum")
-        });
+        
+        if (yearsCnt > 1) {
+            row.push({
+                // third row
+                name: "Итого",
+                field: get_field_name(property.propTitle, "sum")
+            });
+        }
     }
     struct.cells.push(row);
     /* eo structure making*/
