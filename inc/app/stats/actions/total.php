@@ -80,33 +80,6 @@
          */
         $prop_values = array();
         
-        /* Группировка элементов по значению ключа-индикатора */
-        function group_by($items, $indicator_name) {
-            $indicator = null;
-            $groups = array();
-            $group = array();
-            
-            foreach ($items as $item) {
-                if ($indicator == null) {
-                    $indicator = $item[$indicator_name];
-                }
-                
-                if ($item[$indicator_name] != $indicator) {
-                    $indicator = null;
-                    $groups[] = $group;
-                    $group = array();
-                }
-                
-                $group[] = $item;
-            }
-            
-            if (sizeof($group) > 0) {
-                $groups[] = $group;
-            }
-            
-            return $groups;
-        }
-        
         /* Группируем годичные записи о мероприятиях по подпрограммам */
         $subprograms = group_by($work_steps, 'sp_id');
         

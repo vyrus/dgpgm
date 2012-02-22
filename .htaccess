@@ -29,6 +29,7 @@ RewriteRule ^stats$ index.php?mod=stats
 RewriteRule ^stats/total$ index.php?mod=stats&action=total
 RewriteRule ^stats/course$ index.php?mod=stats&action=course
 RewriteRule ^stats/finance$ index.php?mod=stats&action=finance
+RewriteRule ^stats/finance-program$ index.php?mod=stats&action=finance-program
 
 
 RewriteRule ^article([0-9]*)$ index.php?mod=article&action=view&id=$1
