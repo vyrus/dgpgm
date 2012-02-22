@@ -114,15 +114,15 @@
              * обработки данных о заключенных госконтрактах из второго запроса.
              * А если таковых не будет, то значения и останутся нулевыми.
              */
-            'signed_gk' => array('amount' => 0,
-                                 'num'    => 0),
+            'signed_gk_amount' => 0,
+            'signed_gk_num'    => 0,
             /* 
              * Сумма остатка равна полному запланированному объему 
-             * финансирования, она также будет обновлена по обработки данных 
+             * финансирования, она также будет обновлена после обработки данных 
              * заключенных госконтрактов
              */
-            'leftover'  => array('amount' => $row['total_financing'], 
-                                 'num'    => $row['num_signed_gk'])
+            'leftover_amount' => $row['total_financing'], 
+            'leftover_num'    => $row['num_signed_gk']
         );
     }
     
@@ -148,14 +148,18 @@
         /* Обновляем данные подпрограммы */
         $subprogram = & $data[$id];
         /* Уменьшаем остаток финансирования на сумму заключенных госконтрактов */
-        $subprogram['leftover']['amount'] -= $total['amount'];
+        $subprogram['leftover_amount'] -= $total['amount'];
         /* Добавляем суммарные данные о заключенных госконтрактах */
-        $subprogram['signed_gk'] = array('amount' => $total['amount'], 
-                                         'num'    => $total['num']);
+        $subprogram['signed_gk_amount'] = $total['amount']; 
+        $subprogram['signed_gk_num'] = $total['num'];
     }
     
     if ($debug) {
         echo pre($data);
     }
+    
+    $TPL['data'] = json_encode($data);
+    $TPL['year'] = $cur_year;
+    include TPL_CMS_STATS . 'finance-program-result.php';
     
 ?>
