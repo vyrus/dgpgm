@@ -22,8 +22,9 @@
                '-->' . $crlf;
     }
     
-    $debug = true;
+    $debug = false;
     $cur_year = date('Y');
+    $cur_date = date('Y-m-d');
     
     /*
      * Плановое финансирование по подпрограммам на текущий год, 
@@ -157,9 +158,152 @@
     if ($debug) {
         echo pre($data);
     }
-    
-    $TPL['data'] = json_encode($data);
+                   
+    $TPL['program_data'] = json_encode($data);
     $TPL['year'] = $cur_year;
+               
+    if (!empty($_GET['subprogram_id'])) {
+        $subprogram_id = intval($_GET['subprogram_id']);
+        
+        /* Начальные остатки суммы финансирования и количества госконтрактов */
+        $sql = sql_placeholder('
+            SELECT m.id, m.title, mp.financing, mp.gk_count
+            FROM ?#FK_MEASURE m, ?#FK_MEASURE_PLAN mp
+            
+            WHERE mp.year = "' . $cur_year . '" AND
+                  mp.measure_id = m.id AND
+                  m.subprogram_id = ' . $subprogram_id . '
+            
+            ORDER BY m.id;
+        ');
+        
+        $rows_1 = $this->db->_array_data($sql);
+        if ($debug) {
+            echo pre($sql);
+            echo pre($rows_1);
+        }
+        
+        /* Сумма цен лотов по каждому конкурсу мероприятия */
+        $sql = sql_placeholder('
+            SELECT m.id, t.title, (
+                
+                /* Сумма цен лотов текущего года для конкурсов */
+                SELECT COALESCE(SUM(lp.price), 0)
+                FROM ?#FK_LOT l, ?#FK_LOT_PRICE lp
+                WHERE lp.year = "' . $cur_year . '" AND
+                      lp.lot_id = l.id AND
+                      l.tender_id = t.id
+                
+            ) AS total_lot_price
+            FROM ?#FK_MEASURE m, ?#FK_TENDER t
+            
+            WHERE t.notice_date > "' . $cur_year . '-01-01" AND 
+                  t.notice_date < "' . $cur_date . '" AND 
+                  t.measure_id = m.id AND
+                  m.subprogram_id = ' . $subprogram_id . '
+            
+            ORDER BY m.id
+        ');
+        
+        $rows_2 = $this->db->_array_data($sql);
+        if ($debug) {
+            echo pre($sql);
+            echo pre($rows_2);
+        }
+        
+        /* Сумма цен этапов госконтрактов мероприятия */
+        $sql = sql_placeholder('
+            SELECT m.id, gk.work_title, (
+                
+                /* Сумма цен этапов, завершающихся в текущем году */
+                SELECT SUM(st.price)
+                FROM ?#FK_STEPGK AS st
+                WHERE YEAR(st.finish_date) = "' . $cur_year . '" AND
+                      st.GK_id = gk.id
+                GROUP BY st.GK_id
+                
+            ) AS total_step_price
+            FROM ?#FK_MEASURE m, ?#FK_GK AS gk, ?#FK_STATUS AS s
+            
+            WHERE gk.signing_date >= "' . $cur_year . '-01-01" AND 
+                  gk.signing_date <= "' . $cur_date . '" AND 
+                  s.title IN ("заключен", "завершен") AND
+                  s.id = gk.status_id AND
+                  gk.measure_id = m.id AND
+                  m.subprogram_id = ' . $subprogram_id . '
+            
+            ORDER BY m.id
+        ');
+        
+        $rows_3 = $this->db->_array_data($sql);
+        if ($debug) {
+            echo pre($sql);
+            echo pre($rows_3);
+        }
+        
+        $data = array();
+        
+        foreach ($rows_1 as $row) {
+            $id = $row['id'];
+            $data[$id] = array('id'             => $id,
+                               'title'          => $row['title'],
+                               'plan_financing' => $row['financing'],
+                               'plan_gk_count'  => $row['gk_count'],
+                               'tenders_amount' => 0,
+                               'tenders_num'    => 0,
+                               'gk_amount'      => 0,
+                               'gk_num'         => 0,
+                               'economy'        => $row['financing']);
+        }
+        
+        $tender_groups = group_by($rows_2, 'id');
+        
+        foreach ($tender_groups as $group) {
+            $total = (object) array('amount' => 0, 'num' => 0);
+            
+            foreach ($group as $tender) {
+                $total->num += 1;
+                $total->amount += $tender['total_lot_price']; 
+            }
+            
+            $first = reset($group);
+            $id = $first['id'];
+            assert(isset($data[$id]));
+            
+            $measure = & $data[$id];
+            $measure['tenders_amount'] = $total->amount;
+            $measure['tenders_num'] = $total->num;
+        }
+        
+        $gk_groups = group_by($rows_3, 'id');
+        
+        foreach ($gk_groups as $group) {
+            $total = (object) array('amount' => 0, 'num' => 0);
+            
+            foreach ($group as $gk) {
+                $total->num += 1;
+                $total->amount = $gk['total_step_price'];     
+            }
+            
+            $first = reset($group);
+            $id = $first['id'];
+            assert(isset($data[$id]));
+            
+            $measure = & $data[$id];
+            $measure['gk_amount'] = $total->amount;
+            $measure['gk_num'] = $total->num;
+            $measure['economy'] -= $total->amount;
+        }
+        
+        if ($debug) {
+            echo pre($data);
+        }
+        
+        $TPL['subprogram_data'] = json_encode($data);
+        $TPL['subprogram_id'] = $subprogram_id;
+        $TPL['date'] = date('d.m.Y');
+    }
+    
     include TPL_CMS_STATS . 'finance-program-result.php';
     
 ?>

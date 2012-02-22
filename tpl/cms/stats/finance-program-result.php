@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/claro/claro.css">
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/grid/resources/claroGrid.css">
 <style>
-    #grid
+    #grid_program, #grid_subprogram
     {
         height: 570px;
         width: 920px;
@@ -36,10 +36,22 @@
 </style>
 
 <script>
-    renderTable(<?=$TPL['data']?>, "<?=$TPL['year']?>");
+    renderProgramTable(<?=$TPL['program_data']?>, "<?=$TPL['year']?>", "gridProgramContainer");
 </script>
 
-<div id="gridContainer"></div>
+<h1>Финансовая справка по реализации программы</h1><br />
+
+<div id="gridProgramContainer"></div>
+
+<?php if (isset($TPL['subprogram_data'])): ?>
+<script>
+    renderSubprogramTable(<?=$TPL['subprogram_data']?>, "<?=$TPL['year']?>", "gridSubprogramContainer");
+</script>
+
+<h1>Финансовая справка по реализации подпрограммы <?php echo $TPL['subprogram_id'] ?> за <?php echo $TPL['year'] ?> год на <?php echo $TPL['date'] ?></h1><br />
+
+<div id="gridSubprogramContainer"></div>
+<?php endif; ?>
 
 <br />
 <div style="text-align: center;"><a href="#">Сформировать файл Excel</a></div>
