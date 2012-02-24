@@ -27,6 +27,10 @@ class ManagerStats{
 					include ACTIONS_STATS."finance.php";
                 break;
 				
+				case($action =='spravka'):
+					include ACTIONS_STATS."spravka.php";
+                break;
+				
             }
         }
 

@@ -24,38 +24,46 @@ function get_field_name(prop_name, year)
 function makeOut(data, statTitle)
 {
 console.info(data);
-    var firstEntry;
-    for (var i in data)
-    {
-        firstEntry = data[i];
-        break;
-    }
-
-    var propertiesCnt = firstEntry.content.length;
-    var yearsCnt = num_values(firstEntry.content[0].values);
-
     require(["dojo/store/Memory","dojo/data/ObjectStore","dojox/grid/DataGrid", "dojo/domReady!"], function() {
-        /* storage forming*/
+        /* storage forming
+
+         example:
+         var employees = [
+            {title:"spTitle/mTitle1", propTitle1_2012:"accounting"},
+            {title:"spTitle/mTitle2", propTitle1_2013:"engineering"},
+            {title:"spTitle/mTitle3", propTitle1_2014:"sales"},
+            {title:"spTitle/mTitle4", propTitle1_2015:"sales"}
+        ];
+        */
         var dataForStorage = [], entry_idx, entry, entry_data, prop_idx, property,
             year, field_name, prop_sum;
 
         for (entry_idx in data)
         {
             entry = data[entry_idx];
-            entry_data = {title: entry.title, type: entry.type};
+            entry_data = {title: entry.title};
 
             for (prop_idx in entry.content)
             {
                 prop_sum = 0;
                 property = entry.content[prop_idx];
-                for (year in property.values)
+                /* if property has data per years*/
+                if (isNaN(property.values))
                 {
-                    field_name = get_field_name(property.propTitle, year);
-                    entry_data[field_name] = property.values[year];
-                    prop_sum += parseInt(property.values[year]);
+                    for (year in property.values)
+                    {
+                        field_name = get_field_name(property.propTitle, year);
+                        entry_data[field_name] = property.values[year];
+                        prop_sum += parseInt(property.values[year]);
+                    }
+                    field_name = get_field_name(property.propTitle, "sum");
+                    entry_data[field_name] = prop_sum;
+                } else
+                {
+                    /*property HASN'T data per years, it's a common property*/
+                    field_name = property.propTitle;
+                    entry_data[field_name] = property.values;
                 }
-                field_name = get_field_name(property.propTitle, "sum");
-                entry_data[field_name] = prop_sum;
             }
 
             dataForStorage.push(entry_data);
@@ -68,7 +76,6 @@ console.info(data);
    /*structure making*/
     var struct = {
         cells: [],
-        
         onBeforeRow : function(inDataIndex, inSubRows)
         {
                 console.log("in onBeforeRow " + inDataIndex);
@@ -77,7 +84,6 @@ console.info(data);
 
                 if (inDataIndex >= 0)
                 {
-                    
                     console.info(inSubRows[1]);
                     console.info(inSubRows[1].invisible);
                     console.info(inSubRows[1].rowSpan);
@@ -108,29 +114,58 @@ console.info(data);
         }
     };
 
+
+    // Определяем общее количество колонок со значениями показетелей
+    var num_value_cells, firstEntry, propVal;
+
+    for (var i in data)
+    {
+        firstEntry = data[i];
+        for (var j in firstEntry.content)
+        {
+            propVal = firstEntry.content[j];
+            if (!isNaN(propVal.values))
+            {
+                num_value_cells++;
+            } else
+            {
+                num_value_cells += num_values(propVal.values);
+            }
+        }
+        break;
+    }
+
     var row;
 
     /*
-     * Первая строка - для задания ширины колонок
+     * Нулевая строка - для задания ширины колонок
      * @link http://bugs.dojotoolkit.org/ticket/6591
      */
     row = [];
+    //zero row
     // Ширина для колонки "Подпрограмма/Мероприятие"
     row.push({width: "350px"});
 
-    // Определяем общее количество колонок со значениями показателей
-    var num_value_cells = (yearsCnt + 1) * propertiesCnt;
-
     // Добавляем в первую строку нужное их количество
-    for (var i = 0; i < num_value_cells; i++) {
-        row.push({width: (yearsCnt > 1 ? "70px" : "100px")});
+    for (var prop_idx in firstEntry.content)
+    {
+        propVal = firstEntry.content[prop_idx];
+        if (!isNaN(propVal.values))
+        { // for common prop val
+            row.push({width: "100px"});
+        } else
+        { // for years data
+            for (var i = 0; i < num_values(propVal.values); i++) {
+                row.push({width: "50px"});
+            }
+        }
     }
     struct.cells.push(row);
-    
+
     row = [
         { //first row
             name : statTitle,
-            colSpan : (yearsCnt + (yearsCnt > 1) * 1) * propertiesCnt + 1,
+            colSpan : num_value_cells + 1,
             headerClasses : "staticHeader"
         }
     ];
@@ -145,39 +180,51 @@ console.info(data);
         }
     ];
 
-    var first_sp_props_values = firstEntry.content;
-    for (var prop_val in first_sp_props_values)
+    for (var prop_idx in firstEntry.content)
     {
-        var propTitle = first_sp_props_values[prop_val].propTitle;
-        row.push({
+        propVal = firstEntry.content[prop_idx];
+        propTitle = propVal.propTitle;
+        if (!isNaN(propVal.values))
+        { // for common prop val
+            row.push({
             name: propTitle,
-            colSpan: yearsCnt + (yearsCnt > 1) * 1,
+            rowSpan: 2,
+            field: propTitle,
             headerClasses: "staticHeader"
-        });
+            });
+        } else
+        { // for years data
+            row.push({
+            name: propTitle,
+            colSpan: num_values(propVal.values),
+            headerClasses: "staticHeader"
+            });
+        }
     }
-
     struct.cells.push(row);
 
     row = [];
     var prop_idx, property, year, field_name;
-    for (prop_idx in firstEntry.content)
+    for (var prop_idx in firstEntry.content)
     {
-        property = firstEntry.content[prop_idx];
-        for (year in property.values)
-        {
-            row.push({
-                // third row
-                name: year,
-                headerClasses : "staticHeader2",
-                field: get_field_name(property.propTitle, year)
-            });
-        }
-        
-        if (yearsCnt > 1) {
+        propVal = firstEntry.content[prop_idx];
+        if (!isNaN(propVal.values))
+        { // for common prop val - there's no cells
+        } else
+        { // for years data
+            for (year in property.values)
+            {
+                row.push({
+                    // third row
+                    name: year,
+                    headerClasses : "staticHeader2",
+                    field: get_field_name(propVal.propTitle, year)
+                });
+            }
             row.push({
                 // third row
                 name: "Итого",
-                field: get_field_name(property.propTitle, "sum")
+                field: get_field_name(propVal.propTitle, "sum")
             });
         }
     }
@@ -210,18 +257,6 @@ console.info(data);
         // append the new grid to the div "gridContainer4":
         dojo.byId("gridContainer").appendChild(grid4.domNode);
 
-        // Устанавливаем обработчки события, чтобы поменять стиль строк с 
-        // названиями подпрограмм
-        dojo.connect(grid4, "onStyleRow", function(row) {
-            var grid = this;
-            // get item
-            var item = grid.getItem(row.index);          
-                  
-            if (item.type == 'subprogram') {
-                row.customStyles += "background-color: #f3f9ff; font-weight: bold"; 
-            }
-        }); 
-        
         // Call startup, in order to render the grid:
         grid4.startup();
     });
