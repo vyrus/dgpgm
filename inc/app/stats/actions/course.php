@@ -143,7 +143,7 @@ print_r($sql2);*/
 	$sp_titles = array();
 			    
     /* Группировка элементов по значению ключа-индикатора */
-    function group_by($items, $indicator_name) {
+    function key_group_by($items, $indicator_name) {
         $indicator = null;
         $groups = array();
     	$group = array();
@@ -183,29 +183,27 @@ print_r($sql2);*/
         $prop_values = array();
         
         /* Группируем годичные записи о мероприятиях по подпрограммам */
-        $subprograms = group_by($work_steps1, 'sp_id');
+        $subprograms = key_group_by($work_steps1, 'sp_id');
         $subprogram_totals = array();
-        $subprogram_data = array();
         
         foreach ($subprograms as $sp_id => $subprogram_measures)
         {
-            $sp_title = $record['spt'];
-            if (!isset($sp_titles[$sp_id])) {$sp_titles[$sp_id] = $sp_title;}      
-        	
+            $prop_values[$sp_id] = array();
         	/* Суммарные знания показателей по годам для всей подпрограммы */
             $subprogram_totals[$sp_id] = array();
-            /* Временный массив для хранения данных мероприятий текущей подпрограммы */
-            $subprogram_data[$sp_id] = array();
             /* Группируем годичные записи по мероприятиям */
 
-            $measures = group_by($subprogram_measures, 'measure_id');
+            $measures = key_group_by($subprogram_measures, 'measure_id');
 
             foreach ($measures as $m_id => $measure_records) 
             {
-            	$prop_values[$m_id] = array();
+            	$prop_values[$sp_id][$m_id] = array();
                 $record = $measure_records[0];
-
+                
+                $sp_title = $record['spt'];
                 $m_title = $record['mt'];
+                
+                if (!isset($sp_titles[$sp_id])) {$sp_titles[$sp_id] = $sp_title;}
                 if (!isset($m_titles[$m_id])) {$m_titles[$m_id] = $m_title;}      
                 
                 /* Для всех выбранных непериодических показателей запоминаем значения */
@@ -215,7 +213,7 @@ print_r($sql2);*/
 					{
 						$value = $record[$prop_name];
                        
-	                    $prop_values[$m_id][$prop_name] = $value;
+	                    $prop_values[$sp_id][$m_id][$prop_name] = $value;
 	
 	                    /* Обновляем суммарное значение у подпрограммы */
 	                    if (!isset($subprogram_totals[$sp_id][$prop_name])) {
@@ -238,24 +236,25 @@ echo "<br>%%<br>";
     if (!empty($work_steps2))
     {
     	/* Группируем годичные записи о мероприятиях по подпрограммам */
-        $subprograms = group_by($work_steps2, 'sp_id');
-        $subprogram_data = array();
+        $subprograms = key_group_by($work_steps2, 'sp_id');
         
         foreach ($subprograms as $sp_id => $subprogram_measures)
         {
             $sp_title = $record['spt'];
             if (!isset($sp_titles[$sp_id])) {$sp_titles[$sp_id] = $sp_title;}      
         	
+            if (!isset($prop_values[$sp_id])) {
+                $prop_values[$sp_id] = array();
+            }
+            
         	/* Суммарные знания показателей по годам для всей подпрограммы */
 	        if (!isset($subprogram_totals[$sp_id]))
 	        {
         		$subprogram_totals[$sp_id] = array();
 	        }
-            /* Временный массив для хранения данных мероприятий текущей подпрограммы */
-            $subprogram_data[$sp_id] = array();
 
             /* Группируем годичные записи по мероприятиям */
-            $measures = group_by($subprogram_measures, 'measure_id');
+            $measures = key_group_by($subprogram_measures, 'measure_id');
             
             foreach ($measures as $m_id => $measure_years) 
             {
@@ -263,9 +262,9 @@ echo "<br>%%<br>";
                  * Значения показателей по году в формате:
                  * prop_name => array(year => array(prop_value))
                  */
-            	if (!isset($prop_values[$m_id]))
+            	if (!isset($prop_values[$sp_id][$m_id]))
                 {
-            		$prop_values[$m_id] = array();
+            		$prop_values[$sp_id][$m_id] = array();
                 }
 
                 /* Перебираем годичные записи */
@@ -283,12 +282,12 @@ echo "<br>%%<br>";
 							$value = $record[$prop_name];
 
 						
-	                        if (!isset($prop_values[$m_id][$prop_name])) {
-	                            $prop_values[$m_id][$prop_name] = array();
+	                        if (!isset($prop_values[$sp_id][$m_id][$prop_name])) {
+	                            $prop_values[$sp_id][$m_id][$prop_name] = array();
 	                        }
 	                        
 	                        /* Запоминаем значения для текущего года */
-	                        $prop_values[$m_id][$prop_name][$year] = $value;
+	                        $prop_values[$sp_id][$m_id][$prop_name][$year] = $value;
 	                        if (!isset($subprogram_totals[$sp_id][$prop_name])) {
 	                            $subprogram_totals[$sp_id][$prop_name] = array();
 	                        }
@@ -313,13 +312,15 @@ echo "<br>%%<br>";
     
 	foreach ($subprogram_totals as $sp_id => $sp_totals_data)
 	{
-		foreach ($prop_values as $m_id=>$measure_data)
+        $subprogram_data = array();
+        
+		foreach ($prop_values[$sp_id] as $m_id=>$measure_data)
 		{
 	                /* Формируем список значений показателей мероприятия */
 	                $content = array();
 	                foreach ($reportPropsNames as $prop_name) {
 	                    $content[] = array('propTitle' => $possiblePropsNames[$prop_name]["title"],
-	                                       'values'    => $prop_values[$m_id][$prop_name]);
+	                                       'values'    => $measure_data[$prop_name]);
 	                }
 	                /* Добавляем элемент во временный список */
 	                $subprogram_data[] = array('title'   => $m_id . ' ' . $m_titles[$m_id],
@@ -335,19 +336,19 @@ echo "<br>%%<br>";
 	            
 		/* Добавляем элемент во итоговый список */
 		$data[] = array('title'   => $sp_titles[$sp_id],
-	    				'type'    => 'subprogram',
-						'content' => $content);
+	    	            'type'    => 'subprogram',
+				        'content' => $content);
+                        
+        /*
+        * И также переносим элементы из временного списка, чтобы записи о 
+        * меропритиях оказались после записей о подпрограммах
+        */      
+        if ($detailByMeasures) {
+            $data = array_merge($data, $subprogram_data);
+        }
 	}
 
-	/*
-	* И также переносим элементы из временного списка, чтобы записи о 
-	* меропритиях оказались после записей о подпрограммах
-	*/      
-	if ($detailByMeasures) {
-		$data = array_merge($data, $subprogram_data);
-	}
-
-               
+    
       echo '<!--' . print_r($data, true) . '-->';
         $TPL['DATA'] = json_encode($data);
         $TPL['STATTITLE'] = 'Общая статистика по программе за '.$startYear.'-'.$finishYear.' годы';

@@ -1,7 +1,7 @@
 <?
 include TPL_CMS."_header.php";
 ?>
-<script language="JavaScript" src="/files/js/outingTable.js"></script>
+<script language="JavaScript" src="/files/js/outingCourse.js"></script>
 
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/resources/dojo.css">
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/claro/claro.css">
