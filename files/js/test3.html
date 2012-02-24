@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Tutorial: Hello Dojo!</title>
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/resources/dojo.css">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/grid/resources/claroGrid.css">
+    <style>
+
+.staticHeader
+{
+    color:red;
+    background-color: #FF00FF;
+}
+/*
+.staticHeader2
+{
+    width: 40px;
+    color:#ff00ff;
+}
+*/
+.headerHidden
+{
+    height: 0px;
+    background-color: #FF00FF;
+}
+
+
+#grid {
+    height: 700px;
+    width: 1060px;
+}
+* {
+    outline: medium none !important;
+}
+body {
+    background: none repeat scroll 0 0 white;
+    color: #333333;
+    font-family: Lucida Sans,Lucida Grande,Arial !important;
+    font-size: 13px !important;
+    margin: 0;
+    padding: 2em;
+}
+button {
+    background-color: #E4F2FF;
+    background-image: url("http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/claro/form/images/button.png");
+    background-position: center top;
+    background-repeat: repeat-x;
+    border: 1px solid #769DC0;
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+    font-size: 1em;
+    padding: 2px 8px 4px;
+}
+button:hover {
+    background-color: #AFD9FF;
+    color: #000000;
+}
+h1 {
+    font-size: 1.5em;
+}
+    </style>
+    <!-- load Dojo, baseless -->
+    <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js"
+            data-dojo-config="async: true">
+    </script>
+
+<script>
+var store;
+var dataStore;
+var data = {
+    pId :
+    {
+        title: "pTitle",
+        content:
+        [
+            {
+                propTitle: "propTitle1",
+                values: {"2012": "12012","2013": "12013","2014": "12014"}
+            },
+            {
+                propTitle: "propTitle2",
+                values: {"2012": "22012","2013": "22013","2014": "22014"}
+            }
+        ]
+    },
+    mId :
+    {
+        title: "pTitle",
+        content:
+        [
+            {
+                propTitle: "propTitle1",
+                values: {"2012": "32012","2013": "32013","2014": "32014"}
+            },
+            {
+                propTitle: "propTitle2",
+                values: {"2012": "42012","2013": "42013","2014": "42014"}
+            }
+        ]
+    }
+}
+
+function onBeforeRowHandler(inRowIndex, inSubRows) {
+console.info(["test",inRowIndex, inSubRows]);
+  var grid = this.grid;
+  // get item
+  var item = grid.getItem(inRowIndex);
+  // if this is header - just hide the second row
+  if(!item) {
+    inSubRows[0].hidden = true;
+    inSubRows[1].hidden = true;
+    inSubRows[2].hidden = true;
+  }
+  else
+  {
+    inSubRows[0].hidden = true;
+    inSubRows[1].hidden = true;
+    inSubRows[2].hidden = true;
+
+    // if field f1 in item is true - we show second row - otherwise hide it
+//    inSubRows[1].hidden = (grid.store.getValue(item, "f1") == true);
+  }
+}
+
+function num_values(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+
+function get_field_name(prop_name, year) {
+    if (year == "sum")
+    {
+        return prop_name;
+    } else
+    {
+        return prop_name + '_' + year;
+    }
+}
+
+var firstEntry;
+for (var i in data)
+{
+    firstEntry = data[i];
+    break;
+}
+
+var propertiesCnt = firstEntry.content.length;
+var yearsCnt = num_values(firstEntry.content[0].values);
+
+var statTitle = 'Общая статистика по программе за 2012-20.. годы';
+
+require(["dojo/store/Memory","dojo/data/ObjectStore","dojox/grid/DataGrid", "dojo/domReady!"], function() {
+    /* storage forming
+         example:
+         var employees = [
+            {title:"spTitle/mTitle1", propTitle1_2012:"accounting"},
+            {title:"spTitle/mTitle2", propTitle1_2013:"engineering"},
+            {title:"spTitle/mTitle3", propTitle1_2014:"sales"},
+            {title:"spTitle/mTitle4", propTitle1_2015:"sales"}
+        ];
+    */
+    var dataForStorage = [], entry_idx, entry, entry_data, prop_idx, property,
+        year, field_name, prop_sum;
+
+    for (entry_idx in data)
+    {
+        entry = data[entry_idx];
+        entry_data = {title: entry.title};
+
+        for (prop_idx in entry.content)
+        {
+            prop_sum = 0;
+            property = entry.content[prop_idx];
+            for (year in property.values)
+            {
+                field_name = get_field_name(property.propTitle, year);
+                entry_data[field_name] = property.values[year];
+                prop_sum += parseInt(property.values[year]);
+            }
+            field_name = get_field_name(property.propTitle, "sum");
+            entry_data[field_name] = prop_sum;
+        }
+
+        dataForStorage.push(entry_data);
+    }
+
+    store = new dojo.store.Memory({data: dataForStorage, idProperty: "id"});
+    dataStore = new dojo.data.ObjectStore({ objectStore: store });
+    /*eo  storage forming*/
+
+    /*structure making*/
+    var struct = {
+        cells: [],
+        onBeforeRow : onBeforeRowHandler
+    };
+
+    var row;
+
+    /*
+     * Первая строка - для задания ширины колонок
+     * @link http://bugs.dojotoolkit.org/ticket/6591
+     */
+    row = [];
+    // Ширина для колонки "Подпрограмма/Мероприятие"
+    row.push({width: "175px", headerClasses : "headerHidden"});
+
+    // Определяем общее количество колонок со значениями показетелей
+    var num_value_cells = (yearsCnt + 1) * propertiesCnt;
+
+    // Добавляем в первую строку нужное их количество
+    for (var i = 0; i < num_value_cells; i++) {
+        row.push({width: "50px", headerClasses : "headerHidden"});
+    }
+    struct.cells.push(row);
+
+    row = [
+        { //first row
+            name : statTitle,
+            colSpan : (yearsCnt+1) * propertiesCnt + 1,
+            headerClasses : "staticHeader"
+        }
+    ];
+    struct.cells.push(row);
+
+    row = [
+        { //second row
+            name: 'Подпрограмма/Мероприятие',
+            field: 'title',
+            rowSpan: 2,
+            headerClasses: "staticHeader"
+        }
+    ];
+
+    var first_sp_props_values = firstEntry.content;
+    for (var prop_val in first_sp_props_values)
+    {
+        var propTitle = first_sp_props_values[prop_val].propTitle;
+        row.push({
+            name: propTitle,
+            colSpan: yearsCnt + 1,
+            headerClasses: "staticHeader"
+        });
+    }
+    
+    struct.cells.push(row);
+    
+    row = [];
+    var prop_idx, property, year, field_name;
+    for (prop_idx in firstEntry.content)
+    {
+        property = firstEntry.content[prop_idx];
+        for (year in property.values)
+        {
+            row.push({
+                // third row
+                name: year,
+                headerClasses : "staticHeader2",
+                field: get_field_name(property.propTitle, year)
+            });
+        }
+        row.push({
+            // third row
+            name: "Итого",
+            field: get_field_name(property.propTitle, "sum")
+        });
+    }
+    struct.cells.push(row);
+    /* eo structure making*/
+
+    console.info(struct);
+
+    // create a new grid:
+    var grid4 = new dojox.grid.DataGrid(
+    {
+            query : {},
+            store : dataStore,
+//                        clientSort : true,
+            rowSelector : '20px',
+            structure : struct,
+            id : "grid",
+            // used to disable the click for sort on headers that are only for labeling
+            onHeaderCellClick : function(e)
+            {
+                 return false;
+                    if (!dojo.hasClass(e.cell.id, "staticHeader"))
+                    {
+                            e.grid.setSortIndex(e.cell.index);
+                            e.grid.onHeaderClick(e);
+                    }
+            }
+
+    }, document.createElement('div'));
+
+
+    // append the new grid to the div "gridContainer4":
+    dojo.byId("gridContainer").appendChild(grid4.domNode);
+
+    // Call startup, in order to render the grid:
+    grid4.startup();
+});
+</script>
+</head>
+
+<body class="claro">
+    <div id="gridContainer"></div>
+</body>
+</html>
