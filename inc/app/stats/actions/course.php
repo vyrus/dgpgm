@@ -212,7 +212,7 @@ print_r($sql2);*/
                		if (!$possiblePropsNames[$prop_name]["periodical"])
 					{
 						$value = $record[$prop_name];
-                       
+                        
 	                    $prop_values[$sp_id][$m_id][$prop_name] = $value;
 	
 	                    /* Обновляем суммарное значение у подпрограммы */
@@ -231,6 +231,13 @@ print_r($prop_values);
 echo "<br>%%<br>";
 print_r($subprogram_totals);
 echo "<br>%%<br>";
+    
+    /* 
+     * Список годов, который будет потом использоваться, чтобы заполнить нулями 
+     * те показатели, для которых не найдено данных и соответствующие ключи в 
+     * массиве $prop_values[$sp_id][$m_id] не были даже проинициализированы 
+     */
+    $years_list = array();
     
 	/*Периодические показатели*/
     if (!empty($work_steps2))
@@ -270,6 +277,7 @@ echo "<br>%%<br>";
                 /* Перебираем годичные записи */
                 foreach ($measure_years as $record) {
                     $year = $record['year'];
+                    $years_list[$year] = true;
 
                     $m_title = $record['mt'];
                     if (!isset($m_titles[$m_id])) {$m_titles[$m_id] = $m_title;}      
@@ -310,6 +318,38 @@ echo "<br>%%<br>";
 print_r($subprogram_totals);
 echo "<br>%%<br>";
     
+    function fill_up_with_nulls($props, $years, $reportPropsNames, $possiblePropsNames) {
+        foreach($reportPropsNames as $prop_name) {
+            if (isset($props[$prop_name])) {
+                continue;
+            }
+                        
+            if ($possiblePropsNames[$prop_name]['periodical']) {
+                $props[$prop_name] = array();
+                
+                foreach ($years as $year) {
+                    $props[$prop_name][$year] = 0;
+                }
+            } else {
+                $props[$prop_name] = 0;
+            }
+        }
+        
+        return $props;
+    } 
+    
+    $years = array_keys($years_list);
+    
+    foreach ($subprogram_totals as $sp_id => $props) {
+        $subprogram_totals[$sp_id] = fill_up_with_nulls($props, $years, $reportPropsNames, $possiblePropsNames);
+    }
+    
+    foreach ($prop_values as $sp_id => $measures) {
+        foreach ($measures as $m_id => $props) {           
+            $prop_values[$sp_id][$m_id] = fill_up_with_nulls($props, $years, $reportPropsNames, $possiblePropsNames);
+        }    
+    }
+      
 	foreach ($subprogram_totals as $sp_id => $sp_totals_data)
 	{
         $subprogram_data = array();
