@@ -220,9 +220,6 @@ console.info(data);
             if (item.type == 'subprogram') {
                 row.customStyles += "background-color: #f3f9ff; font-weight: bold"; 
             }
-            
-            grid.focus.styleRow(row);
-            grid.edit.styleRow(row);
         }); 
         
         // Call startup, in order to render the grid:

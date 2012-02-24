@@ -7,8 +7,8 @@
 
   $sql_host='localhost';
   $sql_user='root';
-  $sql_password='';
-  $sql_db='dgpgm'; 
+  $sql_password='999';
+  $sql_db='dgpscience'; 
   
   $db=& new MysqlDB();
   $db->_set_config($sql_host, $sql_user, $sql_password, $sql_db, 1);
