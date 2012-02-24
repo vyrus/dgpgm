@@ -35,7 +35,7 @@ console.info(data);
         for (entry_idx in data)
         {
             entry = data[entry_idx];
-            entry_data = {title: entry.title};
+            entry_data = {title: entry.title, type: entry.type};
 
             for (prop_idx in entry.content)
             {
@@ -267,6 +267,22 @@ console.info(data);
 
         }, document.createElement('div'));
 
+        dojo.connect(grid4, "onStyleRow", function(row) {
+            var grid = this;
+            // get item
+            var item = grid.getItem(row.index);          
+                  
+            console.info('Item', item);
+                  
+            if (item.type == 'subprogram') {
+                row.customStyles += "background-color: #f3f9ff; font-weight: bold;";
+                console.info('Custom styles', row.customStyles);
+            }
+            
+            grid.focus.styleRow(row);
+            grid.edit.styleRow(row);
+        });
+        
         // append the new grid to the div "gridContainer4":
         dojo.byId("gridContainer").appendChild(grid4.domNode);
 

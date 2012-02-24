@@ -352,8 +352,7 @@ function renderSubprogramTable(data, year, container) {
         // append the new grid to the div:
         dojo.byId(container).appendChild(grid.domNode);
 
-        // Устанавливаем обработчки события, чтобы поменять стиль строк с 
-        // названиями подпрограмм
+        // Устанавливаем обработчки события, чтобы поменять стиль итоговой строки
         dojo.connect(grid, "onStyleRow", function(row) {
             var grid = this;
             // get item
@@ -362,6 +361,9 @@ function renderSubprogramTable(data, year, container) {
             if ('total' in item) {
                 row.customStyles += "/* background-color: #f3f9ff; */ font-weight: bold"; 
             }
+            
+            grid.focus.styleRow(row);
+            grid.edit.styleRow(row);
         }); 
         
         // Call startup, in order to render the grid:
