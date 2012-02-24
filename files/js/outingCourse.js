@@ -15,7 +15,7 @@ function get_field_name(prop_name, year)
     return prop_name + '_' + year;
 }
 
-function makeOut(data, statTitle)
+function makeOut(data)
 {
 console.info(data);
     require(["dojo/store/Memory","dojo/data/ObjectStore","dojox/grid/DataGrid", "dojo/domReady!"], function() {
@@ -88,8 +88,8 @@ console.info(data);
                     console.info(inSubRows[1][0].invisible);
                     console.info(inSubRows[1][0].rowSpan);
 
-                    inSubRows[1].invisible = true;
-//                    inSubRows[2].invisible = true;
+                    //inSubRows[1].invisible = true;
+                    //inSubRows[2].invisible = true;
 
                     /*
                     inSubRows[1][1].customStyles.push("background: #808080;color:white;font-size:10pt;");
@@ -162,21 +162,24 @@ console.info(data);
         { // for years data
             num_years = num_values(propVal.values);
             for (var i = 0; i < num_cols_per_property; i++) {
-                row.push({width: "50px"});
+                row.push({width: "55px"});
             }
         }
     }
     struct.cells.push(row);
 
+    
+    /*
     row = [
         { //first row
-            name : statTitle,
+            name : ';)',
             colSpan : num_value_cells + 1,
             headerClasses : "staticHeader"
         }
     ];
     struct.cells.push(row);
-
+    */
+    
     row = [
         { //second row
             name: 'Подпрограмма/Мероприятие',

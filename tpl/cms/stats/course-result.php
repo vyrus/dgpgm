@@ -10,11 +10,12 @@ include TPL_CMS."_header.php";
 <link rel="stylesheet" href="/files/css/gridstyle.css">
 
 <script>
-    makeOut(<?=$TPL['DATA']?>,"<?=$TPL['STATTITLE']?>");
+    makeOut(<?=$TPL['DATA']?>);
 </script>
 
 <h1>Ход заявочной кампании</h1>
 
+<h2><?=$TPL['STATTITLE']?></h2>
 <div id="gridContainer"></div>
 
 <br />

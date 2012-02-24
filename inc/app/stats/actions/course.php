@@ -28,8 +28,8 @@
 		$detailByMeasures = isset($row['detail_by_measures']) ? true : false;
 	
 		if ($row['pp'] != 0) {
-			$row['pp'] = intval($row['pp']);
-			$sp_condition = 'and m.subprogram_id = '.$row['pp'];
+            $subprogram_id = intval($row['pp']);
+			$sp_condition = 'and m.subprogram_id = ' . $subprogram_id;
 		}
 		
 		$sql1=sql_placeholder('
@@ -351,8 +351,18 @@ echo "<br>%%<br>";
     
       echo '<!--' . print_r($data, true) . '-->';
         $TPL['DATA'] = json_encode($data);
-        $TPL['STATTITLE'] = 'Общая статистика по программе за '.$startYear.'-'.$finishYear.' годы';
-	    include TPL_CMS_STATS."course-result.php";
+        
+        /* Если выбрана одна подпрограмма */
+        if (isset($subprogram_id)) {
+            $subprogram = reset($data);
+            $title = $subprogram['title'];
+            
+            $TPL['STATTITLE'] = 'Статистка по ходу проведения конкурсов по подпрограмме ' . $title . ' на ' . date('d.m.Y') . ' г.';
+        } else {
+            $TPL['STATTITLE'] = 'Статистка по ходу проведения конкурсов на ' . date('d.m.Y') . ' г.';
+	    }
+        
+        include TPL_CMS_STATS."course-result.php";
     } // end Post
    else {
     		$startYear = date('Y');
