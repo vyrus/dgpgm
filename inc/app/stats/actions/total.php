@@ -48,7 +48,7 @@
         ) tab1
 
         LEFT JOIN (
-            SELECT (SUM(sum) DIV 1000) financed, count(gk.number) gk_commited, 
+            SELECT (SUM(sum) DIV 1000) financed, 
                    gk.measure_id
             FROM `payment_order` po, stepGK sgk, GK gk
             WHERE `status` <> "отменено" AND
@@ -59,18 +59,31 @@
         ON (tab1.measure_id = tab2.measure_id)
 
         LEFT JOIN (
-            SELECT count(t.title) tender_commited, t.measure_id
+            SELECT count(t.title) tender_commited, t.measure_id me1_id, t.estimation_date
             FROM tender t
-            WHERE /* YEAR(t.estimation_date) = tab1.year AND */ 
-                  t.estimation_date < DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-            GROUP BY t.measure_id
+            WHERE t.estimation_date < DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+            GROUP BY me1_id 
         ) tab3
-        ON (tab1.measure_id = tab3.measure_id)
+        ON (tab1.measure_id = tab3.me1_id) AND (YEAR(tab3.estimation_date) = tab1.year)
+        
+        LEFT JOIN (
+            SELECT count(DISTINCT gk.number) gk_commited, 
+                   gk.measure_id me2_id
+            FROM `payment_order` po, stepGK sgk, GK gk
+            WHERE `status` <> "отменено" AND
+                  po.stepGK_id = sgk.id AND
+                  po.type = "аванс" AND
+                  sgk.GK_id = gk.id
+            GROUP BY me2_id
+        ) tab4 
+        ON (tab1.measure_id = tab4.me2_id)
+      
 
         ORDER BY tab1.sp_id, tab1.measure_id, tab1.year', $startYear, $finishYear);
 
-    $work_steps = $this->db->_array_data($sql);
-    if (!empty($work_steps))
+	$work_steps = $this->db->_array_data($sql);
+	
+	if (!empty($work_steps))
     {
         $data = array();
 
@@ -80,39 +93,12 @@
          */
         $prop_values = array();
         
-        /* Группировка элементов по значению ключа-индикатора */
-        function group_by($items, $indicator_name) {
-            $indicator = null;
-            $groups = array();
-            $group = array();
-            
-            foreach ($items as $item) {
-                if ($indicator == null) {
-                    $indicator = $item[$indicator_name];
-                }
-                
-                if ($item[$indicator_name] != $indicator) {
-                    $indicator = null;
-                    $groups[] = $group;
-                    $group = array();
-                }
-                
-                $group[] = $item;
-            }
-            
-            if (sizeof($group) > 0) {
-                $groups[] = $group;
-            }
-            
-            return $groups;
-        }
-        
         /* Группируем годичные записи о мероприятиях по подпрограммам */
         $subprograms = group_by($work_steps, 'sp_id');
         
         foreach ($subprograms as $subprogram_measures)
         {
-            /* Суммарные знания показателей по годам для всей подпрограммы */
+        	/* Суммарные знания показателей по годам для всей подпрограммы */
             $subprogram_totals = array();
             /* Временный массив для хранения данных мероприятий текущей подпрограммы */
             $subprogram_data = array();

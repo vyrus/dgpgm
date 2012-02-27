@@ -1,5 +1,5 @@
 @CHARSET "UTF-8";
-    #grid
+    #grid, #grid_program, #grid_subprogram
     {
         height: 570px;
         width: 100%;
@@ -25,18 +25,4 @@
     .dojoxGridRowTable tr {
         background: none !important;
     }
-    
- 	.claro table tr:nth-child(0n+3) td:nth-child(1n+2).dojoxGridCell 
- 	{
-		padding : 0px !important;
-		border : 0px !important;
- 	} 	
-
- 	.claro .dojoxGridInvisible .dojoxGridCell 
- 	{
-		outline: none;
-		padding : 0px !important;
-		border : 0px !important;
-		word-wrap: break-word;
-		border-color: transparent #E5DAC8 #E5DAC8 transparent;
-	}
+   

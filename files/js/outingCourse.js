@@ -12,16 +12,10 @@ function num_values(obj)
 
 function get_field_name(prop_name, year)
 {
-    if (year == "sum")
-    {
-        return prop_name;
-    } else
-    {
-        return prop_name + '_' + year;
-    }
+    return prop_name + '_' + year;
 }
 
-function makeOut(data, statTitle)
+function makeOut(data)
 {
 console.info(data);
     require(["dojo/store/Memory","dojo/data/ObjectStore","dojox/grid/DataGrid", "dojo/domReady!"], function() {
@@ -41,7 +35,7 @@ console.info(data);
         for (entry_idx in data)
         {
             entry = data[entry_idx];
-            entry_data = {title: entry.title};
+            entry_data = {title: entry.title, type: entry.type};
 
             for (prop_idx in entry.content)
             {
@@ -69,6 +63,8 @@ console.info(data);
             dataForStorage.push(entry_data);
         }
 
+        console.info('Data', dataForStorage);
+        
         store = new dojo.store.Memory({data: dataForStorage, idProperty: "id"});
         dataStore = new dojo.data.ObjectStore({ objectStore: store });
         /*eo  storage forming*/
@@ -92,8 +88,8 @@ console.info(data);
                     console.info(inSubRows[1][0].invisible);
                     console.info(inSubRows[1][0].rowSpan);
 
-                    inSubRows[1].invisible = true;
-//                    inSubRows[2].invisible = true;
+                    //inSubRows[1].invisible = true;
+                    //inSubRows[2].invisible = true;
 
                     /*
                     inSubRows[1][1].customStyles.push("background: #808080;color:white;font-size:10pt;");
@@ -116,8 +112,13 @@ console.info(data);
 
 
     // Определяем общее количество колонок со значениями показетелей
-    var num_value_cells, firstEntry, propVal;
-
+    var num_value_cells = 0, firstEntry, propVal;
+    /* 
+     * Количество лет в периодических показателях и кол-во столбцов в них 
+     * (годы + итого, если перечислены несколько лет
+     */
+    var num_years, num_cols_per_property;
+    
     for (var i in data)
     {
         firstEntry = data[i];
@@ -129,7 +130,11 @@ console.info(data);
                 num_value_cells++;
             } else
             {
-                num_value_cells += num_values(propVal.values);
+                if (num_years == undefined) {
+                    num_years = num_values(propVal.values);
+                    num_cols_per_property = num_years + (num_years > 1 * 1);
+                }
+                num_value_cells += num_cols_per_property;
             }
         }
         break;
@@ -144,7 +149,7 @@ console.info(data);
     row = [];
     //zero row
     // Ширина для колонки "Подпрограмма/Мероприятие"
-    row.push({width: "350px"});
+    row.push({width: "400px"});
 
     // Добавляем в первую строку нужное их количество
     for (var prop_idx in firstEntry.content)
@@ -155,22 +160,26 @@ console.info(data);
             row.push({width: "100px"});
         } else
         { // for years data
-            for (var i = 0; i < num_values(propVal.values); i++) {
-                row.push({width: "50px"});
+            num_years = num_values(propVal.values);
+            for (var i = 0; i < num_cols_per_property; i++) {
+                row.push({width: "60px"});
             }
         }
     }
     struct.cells.push(row);
 
+    
+    /*
     row = [
         { //first row
-            name : statTitle,
+            name : ';)',
             colSpan : num_value_cells + 1,
             headerClasses : "staticHeader"
         }
     ];
     struct.cells.push(row);
-
+    */
+    
     row = [
         { //second row
             name: 'Подпрограмма/Мероприятие',
@@ -194,10 +203,12 @@ console.info(data);
             });
         } else
         { // for years data
+            num_years = num_values(propVal.values);
+            
             row.push({
-            name: propTitle,
-            colSpan: num_values(propVal.values),
-            headerClasses: "staticHeader"
+                name: propTitle,
+                colSpan: num_cols_per_property,
+                headerClasses: "staticHeader"
             });
         }
     }
@@ -212,7 +223,7 @@ console.info(data);
         { // for common prop val - there's no cells
         } else
         { // for years data
-            for (year in property.values)
+            for (year in propVal.values)
             {
                 row.push({
                     // third row
@@ -232,6 +243,8 @@ console.info(data);
     /* eo structure making*/
 
 
+    console.info('Struct', struct);
+    
         // create a new grid:
         var grid4 = new dojox.grid.DataGrid(
         {
@@ -254,10 +267,33 @@ console.info(data);
 
         }, document.createElement('div'));
 
+        dojo.connect(grid4, "onStyleRow", function(row) {
+            var grid = this;
+            // get item
+            var item = grid.getItem(row.index);          
+                  
+            console.info('Item', item);
+                  
+            if (item.type == 'subprogram') {
+                row.customStyles += "background-color: #f3f9ff; font-weight: bold;";
+                console.info('Custom styles', row.customStyles);
+            }
+            
+            grid.focus.styleRow(row);
+            grid.edit.styleRow(row);
+        });
+        
         // append the new grid to the div "gridContainer4":
         dojo.byId("gridContainer").appendChild(grid4.domNode);
 
         // Call startup, in order to render the grid:
         grid4.startup();
+        styleHiddenCells();
     });
 };
+
+function styleHiddenCells()
+{
+	dojo.query("td.dojoxGridCell[colspan=3]").style("border","0px");
+	dojo.query("td.dojoxGridCell[colspan=3]").style("padding","0px");
+}
