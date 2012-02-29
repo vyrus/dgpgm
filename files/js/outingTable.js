@@ -52,7 +52,7 @@ console.info(data);
                 {
                     field_name = get_field_name(property.propTitle, year);
                     entry_data[field_name] = property.values[year];
-                    prop_sum += parseInt(property.values[year]);
+                    prop_sum += parseInt(property.values[year] * 1);
                 }
                 field_name = get_field_name(property.propTitle, "sum");
                 entry_data[field_name] = prop_sum;

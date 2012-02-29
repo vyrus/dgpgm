@@ -40,23 +40,54 @@ class ManagerStats{
 
 }
 
-    /* Группировка элементов по значению ключа-индикатора */
     function group_by($items, $indicator_name) {
-        $indicator = null;
+    
+     	$indicator = $items[0][$indicator_name];
+     	$groups = array();
+     	$group = array();
+     
+        foreach ($items as $item) {
+               
+            /*if first item*/
+            if ($item[$indicator_name] != $indicator) {
+                $groups[] = $group;
+                $indicator = $item[$indicator_name];
+                $group = array();
+            }
+                
+            $group[] = $item;
+        }
+        
+        if (sizeof($group) > 0) {
+            $groups[] = $group;
+        }
+            
+        return $groups;
+    }
+
+	/* Группировка элементов по значению ключа-индикатора  (DON'T work if group has only 1 item)*/
+/*    function group_by($items, $indicator_name) {
+
+    	$indicator = null;
         $groups = array();
         $group = array();
         
         foreach ($items as $item) {
-            if ($indicator == null) {
+echo "<br>FFFFF<br>$indicator<br>";
+        	if ($indicator == null) {
                 $indicator = $item[$indicator_name];
             }
-            
+echo "<br>$indicator<br>";
+//echo "<br><br>";
+//print_r($item[$indicator_name]);
+
+print_r($item);            
             if ($item[$indicator_name] != $indicator) {
                 $indicator = null;
                 $groups[] = $group;
                 $group = array();
             }
-            
+echo "<br>$indicator<br>LLL<br>";            
             $group[] = $item;
         }
         
@@ -65,6 +96,6 @@ class ManagerStats{
         }
         
         return $groups;
-    }
+    }*/
 
 ?>

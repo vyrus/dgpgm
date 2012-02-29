@@ -30,7 +30,7 @@ include TPL_CMS."_header.php";
 <div id="gridContainer"></div>
 
 <br />
-<div style="text-align: center;"><a href="#">Сформировать файл Excel</a></div>
+<div style="text-align: center;"><a href="/files/excel/course.xls">Сформировать файл Excel</a></div>
 
 <?/*
 echo "<pre>";

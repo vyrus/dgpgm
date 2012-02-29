@@ -42,7 +42,7 @@ line-height: 2;
 <?php endif; ?>
 
 <br />
-<div style="text-align: center;"><a href="#">Сформировать файл Excel</a></div>
+<div style="text-align: center;"><a href="/files/excel/finance.xls">Сформировать файл Excel</a></div>
 
 <?php
     include TPL_CMS."_footer.php";

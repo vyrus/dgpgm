@@ -32,7 +32,7 @@
 <div id="gridContainer"></div>
 
 <br />
-<div style="text-align: center;"><a href="#">Сформировать файл Excel</a></div>
+<div style="text-align: center;"><a href="/files/excel/total.xls">Сформировать файл Excel</a></div>
 
 <?
     include TPL_CMS."_footer.php";

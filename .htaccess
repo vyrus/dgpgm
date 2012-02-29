@@ -72,4 +72,4 @@ ErrorDocument 403 /error403
 ErrorDocument 404 /error404
 ErrorDocument 500 /error500
 
-#php_flag display_errors off
+#php_flag display_errors on

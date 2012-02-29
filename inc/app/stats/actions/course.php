@@ -35,53 +35,57 @@
 		$sql1=sql_placeholder('
 			SELECT *
 			FROM
-			(
-				SELECT mp.*, sp.id sp_id, sp.title spt, m.title mt
-				FROM ?#FK_MEASURE_PLAN mp, ?#FK_MEASURE m, ?#FK_SUBPROGRAM sp
-				WHERE mp.measure_id = m.id
-				AND m.subprogram_id = sp.id
-				' . $sp_condition . '
-				AND year= YEAR(NOW())
-			) tab1
-
+	        (
+				SELECT sp.id sp_id, sp.title spt, 
+	                   m.title mt, m.id measure_id
+				FROM ?#FK_MEASURE m, ?#FK_SUBPROGRAM sp
+				WHERE m.subprogram_id = sp.id
+	                  ' . $sp_condition . '
+			) tab0
+			
 			LEFT JOIN
 			(
-				SELECT count( t.title )  tend_num_podacha, t.measure_id
-				FROM ?#FK_TENDER t, ?#FK_MEASURE m
-				WHERE m.id=t.measure_id
-				AND t.notice_date IS NOT NULL
+				SELECT mp.year, mp.financing, mp.gk_count, mp.tender_count, mp.measure_id me1_id 
+				FROM ?#FK_MEASURE_PLAN mp
+				WHERE mp.year= YEAR(NOW())
+			) tab1
+			ON (tab1.me1_id = tab0.measure_id)
+			
+			LEFT JOIN
+			(
+				SELECT count( t.title )  tend_num_podacha, t.measure_id me2_id
+				FROM ?#FK_TENDER t
+				WHERE t.notice_date IS NOT NULL
 				AND t.notice_date <= NOW()
 				AND t.envelope_opening_date >= NOW()
-				GROUP BY t.measure_id
+				GROUP BY me2_id
 			) tab2
-			ON (tab1.measure_id = tab2.measure_id)
+			ON (tab0.measure_id = tab2.me2_id)
 
 			LEFT JOIN
 			(
-				SELECT count( t.title ) tend_num_rassmotr , t.measure_id
-				FROM ?#FK_TENDER t,?#FK_MEASURE m
-				WHERE m.id=t.measure_id
-				AND t.envelope_opening_date IS NOT NULL
+				SELECT count( t.title ) tend_num_rassmotr , t.measure_id me3_id
+				FROM ?#FK_TENDER t
+				WHERE t.envelope_opening_date IS NOT NULL
 				AND t.envelope_opening_date <= NOW()
 				AND t.estimation_date >= NOW()
-				GROUP BY t.measure_id
+				GROUP BY me3_id
 			) tab3
-			ON (tab3.measure_id = tab2.measure_id)
+			ON (tab3.me3_id = tab0.measure_id)
 
 			LEFT JOIN
 			(
-				SELECT count( t.title ) tend_num_commit, t.measure_id
-				FROM ?#FK_TENDER t,?#FK_MEASURE m
-				WHERE m.id=t.measure_id
-				AND t.estimation_date >= CONCAT(YEAR(NOW()),"-01-01")
+				SELECT count( t.title ) tend_num_commit, t.measure_id me4_id
+				FROM ?#FK_TENDER t
+				WHERE t.estimation_date >= CONCAT(YEAR(NOW()),"-01-01")
 				AND t.estimation_date < DATE_SUB(CURDATE(),INTERVAL 1 DAY)
-				GROUP BY t.measure_id
+				GROUP BY me4_id
 			) tab4
-			ON (tab4.measure_id = tab2.measure_id)
+			ON (tab4.me4_id = tab0.measure_id)
 
 			LEFT JOIN
 			(
-				SELECT  SUM(sgk.price) winners_cnt, YEAR(sgk.finish_date) works_year, gk.measure_id
+				SELECT  SUM(sgk.price) winners_cnt, YEAR(sgk.finish_date) works_year, gk.measure_id me5_id
 				FROM ?#FK_BIDGK bgk, ?#FK_LOT l, ?#FK_TENDER t, ?#FK_STEPGK sgk, ?#FK_GK gk
 				WHERE sgk.GK_id = gk.id
 				AND gk.bidGK_id = bgk.id
@@ -91,16 +95,16 @@
 				AND t.estimation_date >= CONCAT(YEAR(NOW()),"-01-01")
 				AND t.estimation_date < DATE_SUB(CURDATE(),INTERVAL 1 DAY)
 				AND YEAR(sgk.finish_date) = YEAR(NOW())
-				GROUP by gk.measure_id
+				GROUP by me5_id
 			) tab6
-			ON tab6.measure_id = tab1.measure_id
+			ON tab6.me5_id = tab0.measure_id
 		');
 
 		$sql2=sql_placeholder('
 			SELECT *, (tab1.tender_commited_money - tab2.winners_money) economy
 			FROM
 			(
-				SELECT (SUM(lp.price) DIV 1000) tender_commited_money, lp.year, t.measure_id, sp.id sp_id
+				SELECT (SUM(lp.price) DIV 1000) tender_commited_money, lp.year, t.measure_id me1_id, sp.id sp_id
 				FROM lot_price lp, lot l, tender t, ?#FK_SUBPROGRAM sp, ?#FK_MEASURE m
 				WHERE m.id=t.measure_id
 				AND lp.lot_id = l.id	
@@ -111,12 +115,12 @@
 				AND lp.year <="2016"
 				AND m.subprogram_id = sp.id
 				' . $sp_condition . '
-				GROUP BY t.measure_id, lp.year
+				GROUP BY me1_id, lp.year
 			) tab1
 			
 			LEFT JOIN
 			(
-				SELECT  (SUM(sgk.price) DIV 1000) winners_money, YEAR(sgk.finish_date) works_year, gk.measure_id
+				SELECT  (SUM(sgk.price) DIV 1000) winners_money, YEAR(sgk.finish_date) works_year, gk.measure_id me2_id
 				FROM bidGK bgk, lot l, tender t, stepGK sgk, GK gk
 				WHERE sgk.GK_id = gk.id
 				AND gk.bidGK_id = bgk.id
@@ -125,10 +129,10 @@
 				AND l.tender_id= t.id
 				AND t.estimation_date >= CONCAT(YEAR(NOW()),"-01-01")
 				AND t.estimation_date < DATE_SUB(CURDATE(),INTERVAL 1 DAY)
-				GROUP by gk.measure_id,	works_year 
+				GROUP by me2_id,	works_year 
 			) tab2
 			ON tab2.works_year = tab1.year
-			AND tab1.measure_id = tab2.measure_id
+			AND tab1.me1_id = tab2.me2_id
 		');
 			
 /*print_r($sql1);		
@@ -142,8 +146,33 @@ print_r($sql2);*/
 	$m_titles = array();
 	$sp_titles = array();
 			    
-    /* Группировка элементов по значению ключа-индикатора */
-    function key_group_by($items, $indicator_name) {
+	function key_group_by($items, $indicator_name) {
+    
+     	$indicator = $items[0][$indicator_name];
+     	$groups = array();
+     	$group = array();
+     
+        foreach ($items as $item) {
+               
+            //if first item
+            if ($item[$indicator_name] != $indicator) {
+                $groups[$indicator] = $group;
+                $indicator = $item[$indicator_name];
+                $group = array();
+            }
+                
+            $group[] = $item;
+        }
+        
+        if (sizeof($group) > 0) {
+            $groups[$indicator] = $group;
+        }
+            
+        return $groups;
+    }
+    
+	/* Группировка элементов по значению ключа-индикатора */
+/*    function key_group_by($items, $indicator_name) {
         $indicator = null;
         $groups = array();
     	$group = array();
@@ -155,7 +184,7 @@ print_r($sql2);*/
 				$indicator = $item[$indicator_name];                    
             }
                
-            /*if first item*/
+            //if first item
             if ($item[$indicator_name] != $indicator) {
             	$first_item_has_been = true;
                 $groups[$indicator] = $group;
@@ -172,7 +201,7 @@ print_r($sql2);*/
             
         return $groups;
     }
-    
+  */  
 	/*Непериодические показатели*/
     if (!empty($work_steps1))
     {
@@ -188,7 +217,8 @@ print_r($sql2);*/
         
         foreach ($subprograms as $sp_id => $subprogram_measures)
         {
-            $prop_values[$sp_id] = array();
+//print_r($subprogram_measures);
+        	$prop_values[$sp_id] = array();
         	/* Суммарные знания показателей по годам для всей подпрограммы */
             $subprogram_totals[$sp_id] = array();
             /* Группируем годичные записи по мероприятиям */
@@ -415,6 +445,100 @@ print_r($sql2);*/
         }
 	}
 
+		// Start creating excel file
+		
+			if (file_exists('/var/www/dgpgm/files/excel/course.xls') ) 
+			  {
+			    unlink ('/var/www/dgpgm/files/excel/course.xls');
+			  }
+			// Include PEAR::Spreadsheet_Excel_Writer
+			require_once "Spreadsheet/Excel/Writer.php";
+			// Create an instance, passing the filename to create
+			$xls =& new Spreadsheet_Excel_Writer('/var/www/dgpgm/files/excel/course.xls');
+			
+			$xls->setVersion(8); 
+	
+    		// Add a worksheet to the file, returning an object to add data to
+			$cart =& $xls->addWorksheet('Course report');
+			$cart->setInputEncoding('UTF-8'); 
+			
+			$titleText = 'Статистика по ходу проведения конкурсов на '.date('Y-m-d'); 
+			// Создание объекта форматирования 
+			$titleFormat =& $xls->addFormat(); 
+			$titleFormat->setFontFamily('Times New Roman'); 
+			$titleFormat->setBold(); 
+			$titleFormat->setSize('12'); 
+			$titleFormat->setColor('navy'); 
+			$titleFormat->setBorder(2); 
+			$titleFormat->setBorderColor('navy'); 
+			$titleFormat->setHAlign('center');
+			$titleFormat->setVAlign('vcenter');	
+			$main_col_count=count($reportPropsNames)+1;
+			$cart->write(1,0,$titleText,$titleFormat); 
+			for ($i=1;$i<$main_col_count;$i++) { $cart->write(1,$i,'',$titleFormat);  }
+			$cart->mergeCells(1,0,1,$main_col_count-1);
+			$cart->setRow(1,30);
+			$cart->setColumn(0,0,40);
+			$cart->setColumn(1,$main_col_count-1,20);
+			
+			// задание заголовков столбцов таблицы
+			$coltitleformat = & $xls->addFormat();
+			$coltitleformat->setFontFamily('Times New Roman'); 
+			$coltitleformat->setBold(); 
+			$coltitleformat->setSize('10'); 
+			$coltitleformat->setColor('navy'); 
+			$coltitleformat->setHAlign('center');
+			$coltitleformat->setVAlign('vcenter');
+			$coltitleformat->setBorder(1);
+			$coltitleformat->setTextWrap();
+			
+			$colprogramformat = & $xls->addFormat();
+			$colprogramformat->setFontFamily('Times New Roman'); 
+			$colprogramformat->setSize('9'); 
+			$colprogramformat->setBold();
+			$colprogramformat->setFGColor('silver'); 
+			$colprogramformat->setHAlign('center');
+			$colprogramformat->setVAlign('vcenter');
+			$colprogramformat->setTextWrap();
+			$colprogramformat->setBorder(1);
+			
+			$colmeasureformat = & $xls->addFormat();
+			$colmeasureformat->setFontFamily('Times New Roman'); 
+			$colmeasureformat->setSize('9'); 
+			$colmeasureformat->setColor('navy'); 
+			$colmeasureformat->setHAlign('center');
+			$colmeasureformat->setVAlign('vcenter');
+			$colmeasureformat->setTextWrap();
+			$colmeasureformat->setBorder(1);
+			
+			$cart->write(2,0,'Подпрограмма / Мероприятие',$coltitleformat);
+			$col=1;
+			foreach($reportPropsNames as $prop_title)
+			  {
+				$cart->write(2,$col,$possiblePropsNames[$prop_title]["title"],$coltitleformat);
+				$col++;
+			  }
+			$freeze = array(3,0); 
+			$cart->freezePanes($freeze);  
+			// вывод самих значений
+			$element_count=count($data);
+			$currow=3;
+			foreach ($data as $data_element)
+			  {
+			    if ($data_element['type']=='subprogram') $fname="colprogramformat"; else
+				  $fname="colmeasureformat";
+				  $cart->write($currow,0,strval($data_element['title']),$$fname);
+				  $col=1;
+				  foreach ($data_element['content'] as $content_element)
+				    {
+					  $cart->write($currow,$col,$content_element['values'],$$fname);
+					  $col++;
+					}
+				  $currow++;
+			  }
+    		$xls->close();
+          
+		  // end creating excel file
     
       echo '<!--' . print_r($data, true) . '-->';
         $TPL['DATA'] = json_encode($data);
@@ -432,8 +556,8 @@ print_r($sql2);*/
         include TPL_CMS_STATS."course-result.php";
     } // end Post
    else {
-    		$startYear = date('Y');
-    		$start2Year = date('Y');
+    		$startYear = 2011;
+    		$start2Year = 2011;
     		$endYear = 2016;
     		$TPL['SUBPROGRAM'] = ManagerForms::listSubprogram();
     		include TPL_CMS_STATS."course.php";

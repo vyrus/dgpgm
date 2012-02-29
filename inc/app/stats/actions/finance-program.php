@@ -22,7 +22,7 @@
                '-->' . $crlf;
     }
     
-    $debug = false;
+    $debug = true;
     $cur_year = date('Y');
     $cur_date = date('Y-m-d');
     
@@ -37,7 +37,8 @@
             SELECT SUM(mp2.gk_count)
             FROM ?#FK_MEASURE m2, ?#FK_MEASURE_PLAN mp2
             WHERE m2.subprogram_id = sp.id AND
-                  mp2.measure_id = m2.id
+                  mp2.measure_id = m2.id AND
+              mp2.year = "' . $cur_year . '"
         
         ) AS num_signed_gk
         FROM ?#FK_MEASURE_PLAN mp, ?#FK_MEASURE m, ?#FK_SUBPROGRAM sp
@@ -158,7 +159,121 @@
     if ($debug) {
         echo pre($data);
     }
-                   
+    
+	if (empty($_GET['subprogram_id'])) {	
+    /* формирование эксель файла с отчетом по общей финансовой справке */ 
+	
+	if (file_exists('/var/www/dgpgm/files/excel/finance.xls') ) 
+			  {
+			    unlink ('/var/www/dgpgm/files/excel/finance.xls');
+			  }
+			// Include PEAR::Spreadsheet_Excel_Writer
+			require_once "Spreadsheet/Excel/Writer.php";
+			// Create an instance, passing the filename to create
+			$xls =& new Spreadsheet_Excel_Writer('/var/www/dgpgm/files/excel/finance.xls');
+			
+			$xls->setVersion(8); 
+	
+    		// Add a worksheet to the file, returning an object to add data to
+			$cart =& $xls->addWorksheet('Finance report');
+			$cart->setInputEncoding('UTF-8'); 
+			
+			// какой нибудь текст в роли заголовка листа 
+			$titleText = 'Финансовая справка по реализации программы'; 
+			// Создание объекта форматирования 
+			$titleFormat =& $xls->addFormat(); 
+			$titleFormat->setFontFamily('Times New Roman'); 
+			$titleFormat->setBold(); 
+			$titleFormat->setSize('12'); 
+			$titleFormat->setColor('navy'); 
+			$titleFormat->setBorder(2); 
+			$titleFormat->setBorderColor('navy'); 
+			$titleFormat->setHAlign('center');
+			$titleFormat->setVAlign('vcenter');	
+			$cart->write(1,0,$titleText,$titleFormat); 
+			for ($i=1;$i<7;$i++) { $cart->write(1,$i,'',$titleFormat);  }
+			$cart->mergeCells(1,0,1,6);
+			$cart->setRow(1,30);
+			$cart->setColumn(0,0,5);
+			$cart->setColumn(1,1,35);
+			$cart->setColumn(2,6,15);
+			
+			// задание заголовков столбцов таблицы
+			$coltitleformat = & $xls->addFormat();
+			$coltitleformat->setFontFamily('Times New Roman'); 
+			$coltitleformat->setBold(); 
+			$coltitleformat->setSize('10'); 
+			$coltitleformat->setColor('navy'); 
+			$coltitleformat->setHAlign('center');
+			$coltitleformat->setVAlign('vcenter');
+			$coltitleformat->setBorder(1);
+			$coltitleformat->setTextWrap();
+			
+			$colformat = & $xls->addFormat();
+			$colformat->setFontFamily('Times New Roman'); 
+			$colformat->setSize('9'); 
+			$colformat->setColor('navy'); 
+			$colformat->setHAlign('center');
+			$colformat->setVAlign('vcenter');
+			$colformat->setTextWrap();
+			$colformat->setBorder(1);
+			
+		    $cart->write(2,0,'№',$coltitleformat);
+			$cart->write(3,0,'',$coltitleformat);
+			$cart->mergeCells(2,0,3,0);
+			$cart->write(2,1,'Подпрограмма',$coltitleformat);
+			$cart->write(3,1,'',$coltitleformat);
+			$cart->mergeCells(2,1,3,1);
+			$cart->write(2,2,'Плановое финансирование на '.$cur_year.' г., млн. руб.',$coltitleformat);
+			$cart->write(3,2,'',$coltitleformat);
+			$cart->mergeCells(2,2,3,2);
+			$cart->write(2,3,'Заключенные до '.$cur_year.' г. контракты',$coltitleformat);
+			$cart->write(2,4,'',$coltitleformat);
+			$cart->mergeCells(2,3,2,4);
+			$cart->write(3,3,'Сумма финансирования на '.$cur_year.' г., млн. руб.',$coltitleformat);
+			$cart->write(3,4,'Количество',$coltitleformat);
+			$cart->write(2,5,'Остаток',$coltitleformat);
+			$cart->write(2,6,'',$coltitleformat);
+			$cart->mergeCells(2,5,2,6);
+			$cart->write(3,5,'Сумма, млн. руб.',$coltitleformat);
+			$cart->write(3,6,'Количество',$coltitleformat);
+				
+			// заморозка верхних строк таблицы
+			$freeze = array(4,0); 
+			$cart->freezePanes($freeze);  
+			
+			// вывод самих значений
+			$element_count=count($data);
+			$currow=4;
+			foreach ($data as $data_element)
+			  {
+			    $fin=round($data_element['financing']/1000000,3);
+				$sga=round($data_element['signed_gk_amount']/1000000,3);
+				$loa=round($data_element['leftover_amount']/1000000,3);
+				$cart->write($currow,0,strval($data_element['id']),$colformat);
+				$cart->write($currow,1,strval($data_element['title']),$colformat);
+				$cart->write($currow,2,"$fin",$colformat);
+				$cart->write($currow,3,"$sga",$colformat);
+				$cart->write($currow,4,$data_element['signed_gk_num'],$colformat);
+				$cart->write($currow,5,"$loa",$colformat);
+				$cart->write($currow,6,$data_element['leftover_num'],$colformat);
+				$currow++;
+			  }
+			// добавление итоговой строки
+				$cart->write($currow,1,'Всего по программе',$colformat);
+				$cart->write($currow,0,'',$colformat);
+				for ($col=2;$col<7;$col++)
+				  {
+					$cell1 = Spreadsheet_Excel_Writer::rowcolToCell(4, $col);
+					$cell2 = Spreadsheet_Excel_Writer::rowcolToCell($currow-1, $col);
+					$formula="=SUM($cell1:$cell2)";
+					$cart->writeFormula($currow,$col,$formula,$colformat); 
+				  }
+   		$xls->close();
+
+	/* конец формирования эксель файла с отчетом по общей финансовой справке */
+		}
+	
     $TPL['program_data'] = json_encode($data);
     $TPL['year'] = $cur_year;
                
@@ -298,6 +413,130 @@
         if ($debug) {
             echo pre($data);
         }
+		
+		    /* формирование эксель файла с отчетом по общей финансовой справке */ 
+	
+	if (file_exists('/var/www/dgpgm/files/excel/finance.xls') ) 
+			  {
+			    unlink ('/var/www/dgpgm/files/excel/finance.xls');
+			  }
+			// Include PEAR::Spreadsheet_Excel_Writer
+			require_once "Spreadsheet/Excel/Writer.php";
+			// Create an instance, passing the filename to create
+			$xls =& new Spreadsheet_Excel_Writer('/var/www/dgpgm/files/excel/finance.xls');
+			
+			$xls->setVersion(8); 
+	
+    		// Add a worksheet to the file, returning an object to add data to
+			$cart =& $xls->addWorksheet('Detail finance report');
+			$cart->setInputEncoding('UTF-8'); 
+			
+			// какой нибудь текст в роли заголовка листа 
+			$titleText = 'Финансовая справка по реализации подпрограммы '.$subprogram_id.'за '.$cur_year.' год на '.$cur_date; 
+			// Создание объекта форматирования 
+			$titleFormat =& $xls->addFormat(); 
+			$titleFormat->setFontFamily('Times New Roman'); 
+			$titleFormat->setBold(); 
+			$titleFormat->setSize('12'); 
+			$titleFormat->setColor('navy'); 
+			$titleFormat->setBorder(2); 
+			$titleFormat->setBorderColor('navy'); 
+			$titleFormat->setHAlign('center');
+			$titleFormat->setVAlign('vcenter');	
+			$cart->write(1,0,$titleText,$titleFormat); 
+			for ($i=1;$i<9;$i++) { $cart->write(1,$i,'',$titleFormat);  }
+			$cart->mergeCells(1,0,1,8);
+			$cart->setRow(1,30);
+			$cart->setColumn(0,0,5);
+			$cart->setColumn(1,1,35);
+			$cart->setColumn(2,8,15);
+			
+			// задание заголовков столбцов таблицы
+			$coltitleformat = & $xls->addFormat();
+			$coltitleformat->setFontFamily('Times New Roman'); 
+			$coltitleformat->setBold(); 
+			$coltitleformat->setSize('10'); 
+			$coltitleformat->setColor('navy'); 
+			$coltitleformat->setHAlign('center');
+			$coltitleformat->setVAlign('vcenter');
+			$coltitleformat->setBorder(1);
+			$coltitleformat->setTextWrap();
+			
+			$colformat = & $xls->addFormat();
+			$colformat->setFontFamily('Times New Roman'); 
+			$colformat->setSize('9'); 
+			$colformat->setColor('navy'); 
+			$colformat->setHAlign('center');
+			$colformat->setVAlign('vcenter');
+			$colformat->setTextWrap();
+			$colformat->setBorder(1);
+			
+		    $cart->write(2,0,'№',$coltitleformat);
+			$cart->write(3,0,'',$coltitleformat);
+			$cart->mergeCells(2,0,3,0);
+			$cart->write(2,1,'Мероприятие',$coltitleformat);
+			$cart->write(3,1,'',$coltitleformat);
+			$cart->mergeCells(2,1,3,1);
+			
+			$cart->write(2,2,'План',$coltitleformat);
+			$cart->write(2,3,'',$coltitleformat);
+			$cart->mergeCells(2,2,2,3);
+			$cart->write(3,2,'Сумма, млн. руб.',$coltitleformat);
+			$cart->write(3,3,'Количество',$coltitleformat);
+			
+			$cart->write(2,4,'Объявлено конкурсов',$coltitleformat);
+			$cart->write(2,5,'',$coltitleformat);
+			$cart->mergeCells(2,4,2,5);
+			$cart->write(3,4,'Сумма на '.$cur_year.',г., млн. руб.',$coltitleformat);
+			$cart->write(3,5,'Количество',$coltitleformat);
+			
+			$cart->write(2,6,'Заключено ГК',$coltitleformat);
+			$cart->write(2,7,'',$coltitleformat);
+			$cart->mergeCells(2,6,2,7);
+			$cart->write(3,6,'Сумма на '.$cur_year.',г., млн. руб.',$coltitleformat);
+			$cart->write(3,7,'Количество',$coltitleformat);
+			
+			$cart->write(2,8,'Экономия, млн. руб.',$coltitleformat);
+			$cart->write(3,8,'',$coltitleformat);
+			$cart->mergeCells(2,2,3,2);
+				
+			// заморозка верхних строк таблицы
+			$freeze = array(4,0); 
+			$cart->freezePanes($freeze);  
+			
+			// вывод самих значений
+			$element_count=count($data);
+			$currow=4;
+			foreach ($data as $data_element)
+			  {
+			    $pf=round($data_element['plan_financing']/1000000,3);
+				$ta=round($data_element['tenders_amount']/1000000,3);
+				$ga=round($data_element['gk_amount']/1000000,3);
+				$ec=round($data_element['economy']/1000000,3);
+				$cart->write($currow,0,strval($data_element['id']),$colformat);
+				$cart->write($currow,1,strval($data_element['title']),$colformat);
+				$cart->write($currow,2,"$pf",$colformat);
+				$cart->write($currow,3,$data_element['plan_gk_count'],$colformat);
+				$cart->write($currow,4,"$ta",$colformat);
+				$cart->write($currow,5,$data_element['tenders_num'],$colformat);
+				$cart->write($currow,6,"$ga",$colformat);
+				$cart->write($currow,7,$data_element['gk_num'],$colformat);
+				$cart->write($currow,8,"$ec",$colformat);
+				$currow++;
+			  }
+			// добавление итоговой строки
+				$cart->write($currow,1,'Итого',$colformat);
+				$cart->write($currow,0,'',$colformat);
+				for ($col=2;$col<9;$col++)
+				  {
+					$cell1 = Spreadsheet_Excel_Writer::rowcolToCell(4, $col);
+					$cell2 = Spreadsheet_Excel_Writer::rowcolToCell($currow-1, $col);
+					$formula="=SUM($cell1:$cell2)";
+					$cart->writeFormula($currow,$col,$formula,$colformat); 
+				  }
+   		$xls->close();
+
+	/* конец формирования эксель файла с отчетом по общей финансовой справке */
         
         $TPL['subprogram_data'] = json_encode($data);
         $TPL['subprogram_id'] = $subprogram_id;
