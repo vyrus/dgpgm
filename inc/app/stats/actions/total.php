@@ -190,14 +190,16 @@
 		
 		// Start creating excel file
 		
-			if (file_exists('/var/www/dgpgm/files/excel/total.xls') ) 
+			$fpath='/var/www/dgpgm/files/excel/total.xls';
+	         //$fpath='c:\excel\total.xls';
+	if (file_exists($fpath) ) 
 			  {
-			    unlink ('/var/www/dgpgm/files/excel/total.xls');
+			    unlink ($fpath);
 			  }
 			// Include PEAR::Spreadsheet_Excel_Writer
 			require_once "Spreadsheet/Excel/Writer.php";
 			// Create an instance, passing the filename to create
-			$xls =& new Spreadsheet_Excel_Writer('/var/www/dgpgm/files/excel/total.xls');
+			$xls =& new Spreadsheet_Excel_Writer($fpath);
 			
 			$xls->setVersion(8); 
 	
@@ -290,7 +292,7 @@
 				  {
 				    if ($data_element['type']=='subprogram') $fname="colprogramformat"; else
 					  $fname="colmeasureformat";
-					  $title=$data_element['title'];
+					  $title=' '.$data_element['title'];
 					  $cart->write($currow,0,strval($title),$$fname);
 					  $col=1;
 					  foreach ($data_element['content'] as $content_element)
@@ -346,7 +348,7 @@
 				  {
 				    if ($data_element['type']=='subprogram') $fname="colprogramformat"; else
 					  $fname="colmeasureformat";
-					  $cart->write($currow,0,strval($data_element['title']),$$fname);
+					  $cart->write($currow,0,' '.strval($data_element['title']),$$fname);
 					  $col=1;
 					  foreach ($data_element['content'] as $content_element)
 					    {

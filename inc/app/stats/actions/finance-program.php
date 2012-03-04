@@ -163,14 +163,16 @@
 	if (empty($_GET['subprogram_id'])) {	
     /* формирование эксель файла с отчетом по общей финансовой справке */ 
 	
-	if (file_exists('/var/www/dgpgm/files/excel/finance.xls') ) 
+	$fpath='/var/www/dgpgm/files/excel/finance.xls';
+	  //$fpath='c:\excel\fifnance.xls';
+	if (file_exists($fpath) ) 
 			  {
-			    unlink ('/var/www/dgpgm/files/excel/finance.xls');
+			    unlink ($fpath);
 			  }
 			// Include PEAR::Spreadsheet_Excel_Writer
 			require_once "Spreadsheet/Excel/Writer.php";
 			// Create an instance, passing the filename to create
-			$xls =& new Spreadsheet_Excel_Writer('/var/www/dgpgm/files/excel/finance.xls');
+			$xls =& new Spreadsheet_Excel_Writer($fpath);
 			
 			$xls->setVersion(8); 
 	
@@ -250,8 +252,8 @@
 			    $fin=round($data_element['financing']/1000000,3);
 				$sga=round($data_element['signed_gk_amount']/1000000,3);
 				$loa=round($data_element['leftover_amount']/1000000,3);
-				$cart->write($currow,0,strval($data_element['id']),$colformat);
-				$cart->write($currow,1,strval($data_element['title']),$colformat);
+				$cart->write($currow,0,' '.$data_element['id'],$colformat);
+				$cart->write($currow,1,$data_element['title'],$colformat);
 				$cart->write($currow,2,"$fin",$colformat);
 				$cart->write($currow,3,"$sga",$colformat);
 				$cart->write($currow,4,$data_element['signed_gk_num'],$colformat);
@@ -281,6 +283,7 @@
         $subprogram_id = intval($_GET['subprogram_id']);
         
         /* Начальные остатки суммы финансирования и количества госконтрактов */
+/*
         $sql = sql_placeholder('
             SELECT m.id, m.title, mp.financing, mp.gk_count
             FROM ?#FK_MEASURE m, ?#FK_MEASURE_PLAN mp
@@ -288,9 +291,58 @@
             WHERE mp.year = "' . $cur_year . '" AND
                   mp.measure_id = m.id AND
                   m.subprogram_id = ' . $subprogram_id . '
+	        ORDER BY m.id;
+	        ');
+print_r($sql);
+echo "<br><br>";
+*/
+        $sql = sql_placeholder('
+		SELECT *
+		FROM
+        (
+			SELECT m.id me1_id, m.title, mp.financing, mp.gk_count gk_count
+            FROM ?#FK_MEASURE m, ?#FK_MEASURE_PLAN mp
             
-            ORDER BY m.id;
+            WHERE mp.year = "' . $cur_year . '" AND
+                  mp.measure_id = m.id AND
+                  m.subprogram_id = ' . $subprogram_id . '
+		) tab0
+
+		LEFT JOIN
+		(
+			SELECT m.id me2_id, COUNT(gk.id) gk_cnt, gk.work_title, SUM((
+	        
+	            /* Сумма цен всех этапов ГК */
+	            SELECT SUM(st.price)
+	            FROM ?#FK_STEPGK AS st
+	            WHERE YEAR(st.finish_date) = "' . $cur_year . '" AND
+	                  st.GK_id = gk.id
+	            GROUP BY st.GK_id
+	        
+	        )) real_financing
+	        FROM ?#FK_GK AS gk, ?#FK_STATUS AS s, ?#FK_MEASURE AS m
+	        WHERE gk.signing_date < "' . $cur_year . '-01-01" AND
+	              s.title IN ("заключен", "завершен") AND
+	              EXISTS(
+	                  
+	                  /* Существуют этапы с датой окончания после начала года */
+	                  SELECT st.id
+	                  FROM ?#FK_STEPGK st
+	                  WHERE st.finish_date > "' . $cur_year . '-01-01" AND
+	                        st.GK_id = gk.id
+	              
+	              ) AND
+	              s.id = gk.status_id AND
+	              m.id = gk.measure_id AND
+	              m.subprogram_id = ' . $subprogram_id . '
+	         GROUP BY me2_id
+		) tab1
+		
+		ON tab0.me1_id = tab1.me2_id
+		ORDER BY tab0.me1_id;
         ');
+              
+//print_r($sql);
         
         $rows_1 = $this->db->_array_data($sql);
         if ($debug) {
@@ -356,13 +408,14 @@
             echo pre($rows_3);
         }
         
+
         $data = array();
         
         foreach ($rows_1 as $row) {
-            $id = $row['id'];
+            $id = $row['me1_id'];
             $data[$id] = array('id'             => $id,
                                'title'          => $row['title'],
-                               'plan_financing' => $row['financing'],
+                               'plan_financing' => $row['financing'] - $row['real_financing'],
                                'plan_gk_count'  => $row['gk_count'],
                                'tenders_amount' => 0,
                                'tenders_num'    => 0,
@@ -416,14 +469,16 @@
 		
 		    /* формирование эксель файла с отчетом по общей финансовой справке */ 
 	
-	if (file_exists('/var/www/dgpgm/files/excel/finance.xls') ) 
+	$fpath='/var/www/dgpgm/files/excel/finance.xls';
+	  //$fpath='c:\excel\fifnance.xls';
+	if (file_exists($fpath) ) 
 			  {
-			    unlink ('/var/www/dgpgm/files/excel/finance.xls');
+			    unlink ($fpath);
 			  }
 			// Include PEAR::Spreadsheet_Excel_Writer
 			require_once "Spreadsheet/Excel/Writer.php";
 			// Create an instance, passing the filename to create
-			$xls =& new Spreadsheet_Excel_Writer('/var/www/dgpgm/files/excel/finance.xls');
+			$xls =& new Spreadsheet_Excel_Writer($fpath);
 			
 			$xls->setVersion(8); 
 	
@@ -432,7 +487,7 @@
 			$cart->setInputEncoding('UTF-8'); 
 			
 			// какой нибудь текст в роли заголовка листа 
-			$titleText = 'Финансовая справка по реализации подпрограммы '.$subprogram_id.'за '.$cur_year.' год на '.$cur_date; 
+			$titleText = 'Финансовая справка по реализации подпрограммы '.$subprogram_id.' за '.$cur_year.' год на '.$cur_date; 
 			// Создание объекта форматирования 
 			$titleFormat =& $xls->addFormat(); 
 			$titleFormat->setFontFamily('Times New Roman'); 
@@ -487,7 +542,7 @@
 			$cart->write(2,4,'Объявлено конкурсов',$coltitleformat);
 			$cart->write(2,5,'',$coltitleformat);
 			$cart->mergeCells(2,4,2,5);
-			$cart->write(3,4,'Сумма на '.$cur_year.',г., млн. руб.',$coltitleformat);
+			$cart->write(3,4,'Сумма на '.$cur_year.', г., млн. руб.',$coltitleformat);
 			$cart->write(3,5,'Количество',$coltitleformat);
 			
 			$cart->write(2,6,'Заключено ГК',$coltitleformat);
@@ -513,8 +568,8 @@
 				$ta=round($data_element['tenders_amount']/1000000,3);
 				$ga=round($data_element['gk_amount']/1000000,3);
 				$ec=round($data_element['economy']/1000000,3);
-				$cart->write($currow,0,strval($data_element['id']),$colformat);
-				$cart->write($currow,1,strval($data_element['title']),$colformat);
+				$cart->write($currow,0,' '.strval($data_element['id']),$colformat);
+				$cart->write($currow,1,$data_element['title'],$colformat);
 				$cart->write($currow,2,"$pf",$colformat);
 				$cart->write($currow,3,$data_element['plan_gk_count'],$colformat);
 				$cart->write($currow,4,"$ta",$colformat);
