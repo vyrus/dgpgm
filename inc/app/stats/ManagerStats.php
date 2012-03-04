@@ -40,31 +40,28 @@ class ManagerStats{
 
 }
 
-    /* Группировка элементов по значению ключа-индикатора */
     function group_by($items, $indicator_name) {
-        $indicator = null;
-        $groups = array();
-        $group = array();
-        
+    
+     	$indicator = $items[0][$indicator_name];
+     	$groups = array();
+     	$group = array();
+     
         foreach ($items as $item) {
-            if ($indicator == null) {
-                $indicator = $item[$indicator_name];
-            }
-            
+               
+            /*if first item*/
             if ($item[$indicator_name] != $indicator) {
-                $indicator = null;
                 $groups[] = $group;
+                $indicator = $item[$indicator_name];
                 $group = array();
             }
-            
+                
             $group[] = $item;
         }
         
         if (sizeof($group) > 0) {
             $groups[] = $group;
         }
-        
+            
         return $groups;
     }
-
 ?>

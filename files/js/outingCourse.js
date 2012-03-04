@@ -149,7 +149,7 @@ console.info(data);
     row = [];
     //zero row
     // Ширина для колонки "Подпрограмма/Мероприятие"
-    row.push({width: "350px"});
+    row.push({width: "400px"});
 
     // Добавляем в первую строку нужное их количество
     for (var prop_idx in firstEntry.content)
@@ -162,7 +162,7 @@ console.info(data);
         { // for years data
             num_years = num_values(propVal.values);
             for (var i = 0; i < num_cols_per_property; i++) {
-                row.push({width: "55px"});
+                row.push({width: "60px"});
             }
         }
     }
@@ -288,5 +288,12 @@ console.info(data);
 
         // Call startup, in order to render the grid:
         grid4.startup();
+        styleHiddenCells();
     });
 };
+
+function styleHiddenCells()
+{
+	dojo.query("td.dojoxGridCell[colspan=3]").style("border","0px");
+	dojo.query("td.dojoxGridCell[colspan=3]").style("padding","0px");
+}

@@ -28,7 +28,7 @@
 				<li>Программа
 				<ul>
 					<li><a href="/stats/total">Общая статистика</a></li>
-					<li><a href="/stats/spravka">Финансовая справка</a></li>
+					<li><a href="/stats/finance-program">Финансовая справка</a></li> 
 				</ul>
 				</li>
 				<li>Заявочная кампания

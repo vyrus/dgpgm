@@ -9,6 +9,17 @@ include TPL_CMS."_header.php";
 
 <link rel="stylesheet" href="/files/css/gridstyle.css">
 
+<style>
+ 	.claro .dojoxGridInvisible .dojoxGridCell 
+ 	{
+		outline: none;
+		padding : 0px !important;
+		border : 0px !important;
+		word-wrap: break-word;
+		border-color: transparent #E5DAC8 #E5DAC8 transparent;
+	}
+</style>
+
 <script>
     makeOut(<?=$TPL['DATA']?>);
 </script>
@@ -19,7 +30,7 @@ include TPL_CMS."_header.php";
 <div id="gridContainer"></div>
 
 <br />
-<div style="text-align: center;"><a href="#">Сформировать файл Excel</a></div>
+<div style="text-align: center;"><a href="/files/excel/course.xls">Сформировать файл Excel</a></div>
 
 <?/*
 echo "<pre>";

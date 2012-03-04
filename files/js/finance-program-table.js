@@ -54,7 +54,8 @@ function renderProgramTable(data, year, container) {
             // Ширина для колонки "№" 
             {width: "30px"},
             // Ширина для колонки "Подпрограмма"
-            {width: "280px"},
+
+            {width: "400px"},
             // Плановое финансирование
             {width: "170px"},
             // Сумма финансирования
@@ -174,7 +175,10 @@ function renderProgramTable(data, year, container) {
         
         // Call startup, in order to render the grid:
         grid.startup();
+        styleHiddenCells();        
     });
+    
+    styleHiddenCells();
 };
 
 function renderSubprogramTable(data, year, container) {
@@ -368,6 +372,7 @@ function renderSubprogramTable(data, year, container) {
         
         // Call startup, in order to render the grid:
         grid.startup();
+        styleHiddenCells();
     });
 };
 
@@ -375,4 +380,10 @@ function million_formatter(amount) {
     amount = amount / 1000000;
     amount = Math.round(amount * 1000) / 1000;
     return amount.toString();
+}
+
+function styleHiddenCells()
+{
+	dojo.query("td.dojoxGridCell[colspan=2]").style("border","0px");
+	dojo.query("td.dojoxGridCell[colspan=2]").style("padding","0px");
 }
