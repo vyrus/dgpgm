@@ -67,7 +67,7 @@
             /* Сумма цен всех этапов ГК */
             SELECT SUM(st.price)
             FROM ?#FK_STEPGK AS st
-            WHERE YEAR(st.finish_date) = "' . $cur_year . '" AND
+            WHERE YEAR(st.act_financing_date) = "' . $cur_year . '" AND
                   st.GK_id = gk.id
             GROUP BY st.GK_id
         
@@ -314,7 +314,7 @@ echo "<br><br>";
 	            /* Сумма цен всех этапов ГК */
 	            SELECT SUM(st.price)
 	            FROM ?#FK_STEPGK AS st
-	            WHERE YEAR(st.finish_date) = "' . $cur_year . '" AND
+	            WHERE YEAR(st.act_financing_date) = "' . $cur_year . '" AND
 	                  st.GK_id = gk.id
 	            GROUP BY st.GK_id
 	        
