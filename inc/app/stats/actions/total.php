@@ -91,7 +91,7 @@
         ORDER BY tab0.sp_id, tab0.measure_id, tab0.year', $startYear, $finishYear);
 //echo '<!--' . print_r($sql).'<br>--<br> -->';
 	$work_steps = $this->db->_array_data($sql);
-//	print_r($work_steps);
+	//print_r($work_steps);
 	if (!empty($work_steps))
     {
         $data = array();
@@ -186,7 +186,7 @@
             }
         }
         
-        echo '<!--' . print_r($data, true) . '-->';
+        //echo '<!--' . print_r($data, true) . '-->';
 		
 		// Start creating excel file
 		
