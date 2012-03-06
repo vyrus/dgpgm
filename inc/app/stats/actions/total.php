@@ -48,7 +48,7 @@
 		
 		LEFT JOIN
 		(
-        	SELECT mp.measure_id me4_id, mp.year y1, (mp.financing DIV 1000) financing, 
+        	SELECT mp.measure_id me4_id, mp.year y1, (mp.financing / 1000) financing, 
                    mp.gk_count, mp.tender_count
             FROM ?#FK_MEASURE_PLAN mp
         ) tab1
@@ -56,7 +56,7 @@
 		
         LEFT JOIN 
         (
-            SELECT (SUM(sum) DIV 1000) financed, 
+            SELECT (SUM(sum) / 1000) financed, 
                    gk.measure_id me3_id, YEAR(po.date) p_date
             FROM `payment_order` po, stepGK sgk, GK gk
             WHERE `status` <> "отменено" AND

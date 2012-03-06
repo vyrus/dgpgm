@@ -104,7 +104,7 @@
 			SELECT *, (tab1.tender_commited_money - tab2.winners_money) economy
 			FROM
 			(
-				SELECT (SUM(lp.price) DIV 1000) tender_commited_money, lp.year, t.measure_id me1_id, sp.id sp_id
+				SELECT (SUM(lp.price) / 1000) tender_commited_money, lp.year, t.measure_id me1_id, sp.id sp_id
 				FROM lot_price lp, lot l, tender t, ?#FK_SUBPROGRAM sp, ?#FK_MEASURE m
 				WHERE m.id=t.measure_id
 				AND lp.lot_id = l.id	
@@ -120,7 +120,7 @@
 			
 			LEFT JOIN
 			(
-				SELECT  (SUM(sgk.price) DIV 1000) winners_money, YEAR(sgk.finish_date) works_year, gk.measure_id me2_id
+				SELECT  (SUM(sgk.price) / 1000) winners_money, YEAR(sgk.finish_date) works_year, gk.measure_id me2_id
 				FROM bidGK bgk, lot l, tender t, stepGK sgk, GK gk
 				WHERE sgk.GK_id = gk.id
 				AND gk.bidGK_id = bgk.id
