@@ -98,6 +98,7 @@
 				GROUP by me5_id
 			) tab6
 			ON tab6.me5_id = tab0.measure_id
+			ORDER BY tab0.sp_id, tab0.measure_id
 		');
 
 		$sql2=sql_placeholder('
@@ -133,15 +134,16 @@
 			) tab2
 			ON tab2.works_year = tab1.year
 			AND tab1.me1_id = tab2.me2_id
+			ORDER BY tab1.sp_id, tab1.me1_id			
 		');
-			
-/*print_r($sql1);		
+/*			
+print_r($sql1);		
 echo "<br>-----<br>";
-print_r($sql2);*/
-
+print_r($sql2);
+*/
     $work_steps1 = $this->db->_array_data($sql1);
     $work_steps2 = $this->db->_array_data($sql2);
-
+			
     $data = array();
 	$m_titles = array();
 	$sp_titles = array();
@@ -156,8 +158,8 @@ print_r($sql2);*/
                
             //if first item
             if ($item[$indicator_name] != $indicator) {
-                $groups[$indicator] = $group;
-                $indicator = $item[$indicator_name];
+            	$groups[$indicator] = $group;
+            	$indicator = $item[$indicator_name];
                 $group = array();
             }
                 
@@ -171,37 +173,6 @@ print_r($sql2);*/
         return $groups;
     }
     
-	/* Группировка элементов по значению ключа-индикатора */
-/*    function key_group_by($items, $indicator_name) {
-        $indicator = null;
-        $groups = array();
-    	$group = array();
-        $first_item_has_been = true;
-            
-        foreach ($items as $item) {
-            if ($first_item_has_been) {
-        	    $first_item_has_been = false;
-				$indicator = $item[$indicator_name];                    
-            }
-               
-            //if first item
-            if ($item[$indicator_name] != $indicator) {
-            	$first_item_has_been = true;
-                $groups[$indicator] = $group;
-            	$indicator = $item[$indicator_name];
-                $group = array();
-            }
-                
-            $group[] = $item;
-        }
-            
-        if (sizeof($group) > 0) {
-            $groups[$indicator] = $group;
-        }
-            
-        return $groups;
-    }
-  */  
 	/*Непериодические показатели*/
     if (!empty($work_steps1))
     {
