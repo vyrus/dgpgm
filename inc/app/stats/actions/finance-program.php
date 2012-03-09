@@ -4,11 +4,6 @@
      * Финансовая справка по реализации программы
      */
     
-    /*
-        - проверить запрос 
-        - протестировать на нормальных данных
-    */
-    
     //if (USER_GROUP != 5) {
     if (!true) {                                                                                                                                                              
         include TPL_CMS_STATS."no-rights.php";
@@ -25,276 +20,265 @@
     $debug = true;
     $cur_year = date('Y');
     $cur_date = date('Y-m-d');
-    
-    /*
-     * Плановое финансирование по подпрограммам на текущий год, 
-     * количество ГК на текущий год
-     */
-    $sql = sql_placeholder('
-        SELECT sp.id, sp.title, SUM(mp.financing) AS total_financing, (
-        
-            /* Сумма ГК по всем мероприятиям подпрограммы */
-            SELECT SUM(mp2.gk_count)
-            FROM ?#FK_MEASURE m2, ?#FK_MEASURE_PLAN mp2
-            WHERE m2.subprogram_id = sp.id AND
-                  mp2.measure_id = m2.id AND
-              mp2.year = "' . $cur_year . '"
-        ) AS num_signed_gk
-        FROM ?#FK_MEASURE_PLAN mp, ?#FK_MEASURE m, ?#FK_SUBPROGRAM sp
-        
-        WHERE mp.measure_id = m.id AND
-              m.subprogram_id = sp.id AND
-              mp.year = "' . $cur_year . '"
-        GROUP BY sp.id
-        ORDER BY sp.id ASC
-    ');
-    
-    $rows_1 = $this->db->_array_data($sql);
-    if ($debug) {
-        echo pre($sql);
-        echo pre($rows_1);
-    }
-    
-    /*
-    INSERT INTO  `stepGK` (  `id` ,  `start_date` ,  `finish_date` ,  `presentation_date` ,  `review_date` ,  `prepayment_date` ,  `act_financing_date` ,  `integration_date` ,  `price` ,  `prepayment` ,  `act_number` ,  `act_reg_date` ,  `act_file_link` ,  `GK_id` ,  `financing_act` ) 
-    VALUES ('25',  '2012-02-07',  '2012-02-09', NULL , NULL ,  '2012-02-10',  '2012-02-14', NULL ,  '1300',  '1234', NULL , NULL , NULL ,  '0',  '4321');
-    */
-    
-    /* Заключенные до текущего года ГК, сумма финансирования и кол-во */
-    $sql = sql_placeholder('
-        SELECT sp.id AS subprogram_id, gk.id AS gk_id, gk.work_title, (
-        
-            /* Сумма цен всех этапов ГК */
-            SELECT SUM(st.price)
-            FROM ?#FK_STEPGK AS st
-            WHERE YEAR(st.act_financing_date) = "' . $cur_year . '" AND
-                  st.GK_id = gk.id
-            GROUP BY st.GK_id
-        
-        ) AS financing
-        FROM ?#FK_GK AS gk, ?#FK_STATUS AS s, ?#FK_MEASURE AS m, 
-             ?#FK_SUBPROGRAM AS sp
-        
-        WHERE gk.signing_date < "' . $cur_year . '-01-01" AND
-              s.title IN ("заключен", "завершен") AND
-              EXISTS(
-                  
-                  /* Существуют этапы с датой окончания после начала года */
-                  SELECT st.id
-                  FROM ?#FK_STEPGK st
-                  WHERE st.finish_date > "' . $cur_year . '-01-01" AND
-                        st.GK_id = gk.id
-              
-              ) AND
-              s.id = gk.status_id AND
-              m.id = gk.measure_id AND
-              sp.id = m.subprogram_id
-              
-        ORDER BY subprogram_id ASC
-    ');
-    
-    $rows_2 = $this->db->_array_data($sql);
-    if ($debug) {
-        echo pre($sql);
-        echo pre($rows_2);
-    }
-    
-    $data = array();
-    
-    /* Перебираем первые полученные данные по подпрограммам */
-    foreach ($rows_1 as $row) {
-        /* Формируем начальный массив данных для передачи в шаблон */
-        $id = $row['id'];
-        $data[$id] = array(
-            'id'        => $id,
-            'title'     => $row['title'],
-            'financing' => $row['total_financing'],
-            /* 
-             * По умолчанию сумма финансирования по заключенным госконтрактам и 
-             * их количество равны нулю. Эти значения буду обновлены после 
-             * обработки данных о заключенных госконтрактах из второго запроса.
-             * А если таковых не будет, то значения и останутся нулевыми.
-             */
-            'signed_gk_amount' => 0,
-            'signed_gk_num'    => 0,
-            /* 
-             * Сумма остатка равна полному запланированному объему 
-             * финансирования, она также будет обновлена после обработки данных 
-             * заключенных госконтрактов
-             */
-            'leftover_amount' => $row['total_financing'], 
-            'leftover_num'    => $row['num_signed_gk']
-        );
-    }
-    
-    /* Группируем данные о госконтрактах по подпрограммам, к которым они относятся */
-    $gk_groups = group_by($rows_2, 'subprogram_id');
-    
-    /* Перебираем группы госконтрактов по подпрограммам */
-    foreach ($gk_groups as $group) {
-        /* Массив для накопления суммарных значений для подпрограммы целиком */
-        $total = array('amount' => 0, 'num' => 0);
-        
-        /* Перебираем госконтракты из группы */
-        foreach ($group as $gk) {
-            $total['num']++;
-            $total['amount'] += $gk['financing']; 
-        }
-        
-        /* Берём идентификатор подпрограммы из первого госконтракта в группе */
-        $first = reset($group);
-        $id = $first['subprogram_id'];
-        assert(isset($data[$id]));
-        
-        /* Обновляем данные подпрограммы */
-        $subprogram = & $data[$id];
-        /* Уменьшаем остаток финансирования на сумму заключенных госконтрактов */
-        $subprogram['leftover_amount'] -= $total['amount'];
-        /* Добавляем суммарные данные о заключенных госконтрактах */
-        $subprogram['signed_gk_amount'] = $total['amount']; 
-        $subprogram['signed_gk_num'] = $total['num'];
-    }
-    
-    if ($debug) {
-        echo pre($data);
-    }
-    
-	if (empty($_GET['subprogram_id'])) {	
-    /* формирование эксель файла с отчетом по общей финансовой справке */ 
-	
-	$fpath='/var/www/dgpgm/files/excel/finance.xls';
-	  //$fpath='c:\excel\fifnance.xls';
-	if (file_exists($fpath) ) 
-			  {
-			    unlink ($fpath);
-			  }
-			// Include PEAR::Spreadsheet_Excel_Writer
-			require_once "Spreadsheet/Excel/Writer.php";
-			// Create an instance, passing the filename to create
-			$xls =& new Spreadsheet_Excel_Writer($fpath);
-			
-			$xls->setVersion(8); 
-	
-    		// Add a worksheet to the file, returning an object to add data to
-			$cart =& $xls->addWorksheet('Finance report');
-			$cart->setInputEncoding('UTF-8'); 
-			
-			// какой нибудь текст в роли заголовка листа 
-			$titleText = 'Финансовая справка по реализации программы'; 
-			// Создание объекта форматирования 
-			$titleFormat =& $xls->addFormat(); 
-			$titleFormat->setFontFamily('Times New Roman'); 
-			$titleFormat->setBold(); 
-			$titleFormat->setSize('12'); 
-			$titleFormat->setColor('navy'); 
-			$titleFormat->setBorder(2); 
-			$titleFormat->setBorderColor('navy'); 
-			$titleFormat->setHAlign('center');
-			$titleFormat->setVAlign('vcenter');	
-			$cart->write(1,0,$titleText,$titleFormat); 
-			for ($i=1;$i<7;$i++) { $cart->write(1,$i,'',$titleFormat);  }
-			$cart->mergeCells(1,0,1,6);
-			$cart->setRow(1,30);
-			$cart->setColumn(0,0,5);
-			$cart->setColumn(1,1,35);
-			$cart->setColumn(2,6,15);
-			
-			// задание заголовков столбцов таблицы
-			$coltitleformat = & $xls->addFormat();
-			$coltitleformat->setFontFamily('Times New Roman'); 
-			$coltitleformat->setBold(); 
-			$coltitleformat->setSize('10'); 
-			$coltitleformat->setColor('navy'); 
-			$coltitleformat->setHAlign('center');
-			$coltitleformat->setVAlign('vcenter');
-			$coltitleformat->setBorder(1);
-			$coltitleformat->setTextWrap();
-			
-			$colformat = & $xls->addFormat();
-			$colformat->setFontFamily('Times New Roman'); 
-			$colformat->setSize('9'); 
-			$colformat->setColor('navy'); 
-			$colformat->setHAlign('center');
-			$colformat->setVAlign('vcenter');
-			$colformat->setTextWrap();
-			$colformat->setBorder(1);
-			
-		    $cart->write(2,0,'№',$coltitleformat);
-			$cart->write(3,0,'',$coltitleformat);
-			$cart->mergeCells(2,0,3,0);
-			$cart->write(2,1,'Подпрограмма',$coltitleformat);
-			$cart->write(3,1,'',$coltitleformat);
-			$cart->mergeCells(2,1,3,1);
-			$cart->write(2,2,'Плановое финансирование на '.$cur_year.' г., млн. руб.',$coltitleformat);
-			$cart->write(3,2,'',$coltitleformat);
-			$cart->mergeCells(2,2,3,2);
-			$cart->write(2,3,'Заключенные до '.$cur_year.' г. контракты',$coltitleformat);
-			$cart->write(2,4,'',$coltitleformat);
-			$cart->mergeCells(2,3,2,4);
-			$cart->write(3,3,'Сумма финансирования на '.$cur_year.' г., млн. руб.',$coltitleformat);
-			$cart->write(3,4,'Количество',$coltitleformat);
-			$cart->write(2,5,'Остаток',$coltitleformat);
-			$cart->write(2,6,'',$coltitleformat);
-			$cart->mergeCells(2,5,2,6);
-			$cart->write(3,5,'Сумма, млн. руб.',$coltitleformat);
-			$cart->write(3,6,'Количество',$coltitleformat);
-				
-			// заморозка верхних строк таблицы
-			$freeze = array(4,0); 
-			$cart->freezePanes($freeze);  
-			
-			// вывод самих значений
-			$element_count=count($data);
-			$currow=4;
-			foreach ($data as $data_element)
-			  {
-			    $fin=round($data_element['financing']/1000000,3);
-				$sga=round($data_element['signed_gk_amount']/1000000,3);
-				$loa=round($data_element['leftover_amount']/1000000,3);
-				$cart->write($currow,0,' '.$data_element['id'],$colformat);
-				$cart->write($currow,1,$data_element['title'],$colformat);
-				$cart->write($currow,2,"$fin",$colformat);
-				$cart->write($currow,3,"$sga",$colformat);
-				$cart->write($currow,4,$data_element['signed_gk_num'],$colformat);
-				$cart->write($currow,5,"$loa",$colformat);
-				$cart->write($currow,6,$data_element['leftover_num'],$colformat);
-				$currow++;
-			  }
-			// добавление итоговой строки
-				$cart->write($currow,1,'Всего по программе',$colformat);
-				$cart->write($currow,0,'',$colformat);
-				for ($col=2;$col<7;$col++)
-				  {
-					$cell1 = Spreadsheet_Excel_Writer::rowcolToCell(4, $col);
-					$cell2 = Spreadsheet_Excel_Writer::rowcolToCell($currow-1, $col);
-					$formula="=SUM($cell1:$cell2)";
-					$cart->writeFormula($currow,$col,$formula,$colformat); 
-				  }
-   		$xls->close();
 
-	/* конец формирования эксель файла с отчетом по общей финансовой справке */
-		}
+    if (empty($_GET['subprogram_id'])) {    
+	    /*
+	     * Плановое финансирование по подпрограммам на текущий год, 
+	     * количество ГК на текущий год
+	     */
+	    $sql = sql_placeholder('
+	        SELECT sp.id, sp.title, SUM(mp.financing) AS total_financing, (
+	        
+	            /* Сумма ГК по всем мероприятиям подпрограммы */
+	            SELECT SUM(mp2.gk_count)
+	            FROM ?#FK_MEASURE m2, ?#FK_MEASURE_PLAN mp2
+	            WHERE m2.subprogram_id = sp.id AND
+	                  mp2.measure_id = m2.id AND
+	              mp2.year = "' . $cur_year . '"
+	        ) AS num_signed_gk
+	        FROM ?#FK_MEASURE_PLAN mp, ?#FK_MEASURE m, ?#FK_SUBPROGRAM sp
+	        
+	        WHERE mp.measure_id = m.id AND
+	              m.subprogram_id = sp.id AND
+	              mp.year = "' . $cur_year . '"
+	        GROUP BY sp.id
+	        ORDER BY sp.id ASC
+	    ');
+	    
+	    $rows_1 = $this->db->_array_data($sql);
+	    if ($debug) {
+	        echo pre($sql);
+	        echo pre($rows_1);
+	    }
+	    
+	    /*
+	    INSERT INTO  `stepGK` (  `id` ,  `start_date` ,  `finish_date` ,  `presentation_date` ,  `review_date` ,  `prepayment_date` ,  `act_financing_date` ,  `integration_date` ,  `price` ,  `prepayment` ,  `act_number` ,  `act_reg_date` ,  `act_file_link` ,  `GK_id` ,  `financing_act` ) 
+	    VALUES ('25',  '2012-02-07',  '2012-02-09', NULL , NULL ,  '2012-02-10',  '2012-02-14', NULL ,  '1300',  '1234', NULL , NULL , NULL ,  '0',  '4321');
+	    */
+	    
+	    /* Заключенные до текущего года ГК, сумма финансирования и кол-во */
+	    $sql = sql_placeholder('
+	        SELECT sp.id AS subprogram_id, gk.id AS gk_id, gk.work_title, (
+	        
+	            /* Сумма цен всех этапов ГК */
+	            SELECT SUM(st.price)
+	            FROM ?#FK_STEPGK AS st
+	            WHERE YEAR(st.act_financing_date) = "' . $cur_year . '" AND
+	                  st.GK_id = gk.id
+	            GROUP BY st.GK_id
+	        
+	        ) AS financing
+	        FROM ?#FK_GK AS gk, ?#FK_STATUS AS s, ?#FK_MEASURE AS m, 
+	             ?#FK_SUBPROGRAM AS sp
+	        
+	        WHERE gk.signing_date < "' . $cur_year . '-01-01" AND
+	              s.title IN ("заключен", "завершен") AND
+	              EXISTS(
+	                  
+	                  /* Существуют этапы с датой окончания после начала года */
+	                  SELECT st.id
+	                  FROM ?#FK_STEPGK st
+	                  WHERE st.finish_date > "' . $cur_year . '-01-01" AND
+	                        st.GK_id = gk.id
+	              
+	              ) AND
+	              s.id = gk.status_id AND
+	              m.id = gk.measure_id AND
+	              sp.id = m.subprogram_id
+	              
+	        ORDER BY subprogram_id ASC
+	    ');
+	    
+	    $rows_2 = $this->db->_array_data($sql);
+	    if ($debug) {
+	        echo pre($sql);
+	        echo pre($rows_2);
+	    }
+	    
+	    $data = array();
+	    
+	    /* Перебираем первые полученные данные по подпрограммам */
+	    foreach ($rows_1 as $row) {
+	        /* Формируем начальный массив данных для передачи в шаблон */
+	        $id = $row['id'];
+	        $data[$id] = array(
+	            'id'        => $id,
+	            'title'     => $row['title'],
+	            'financing' => $row['total_financing'],
+	            /* 
+	             * По умолчанию сумма финансирования по заключенным госконтрактам и 
+	             * их количество равны нулю. Эти значения буду обновлены после 
+	             * обработки данных о заключенных госконтрактах из второго запроса.
+	             * А если таковых не будет, то значения и останутся нулевыми.
+	             */
+	            'signed_gk_amount' => 0,
+	            'signed_gk_num'    => 0,
+	            /* 
+	             * Сумма остатка равна полному запланированному объему 
+	             * финансирования, она также будет обновлена после обработки данных 
+	             * заключенных госконтрактов
+	             */
+	            'leftover_amount' => $row['total_financing'], 
+	            'leftover_num'    => $row['num_signed_gk']
+	        );
+	    }
+	    
+	    /* Группируем данные о госконтрактах по подпрограммам, к которым они относятся */
+	    $gk_groups = group_by($rows_2, 'subprogram_id');
+	    
+	    /* Перебираем группы госконтрактов по подпрограммам */
+	    foreach ($gk_groups as $group) {
+	        /* Массив для накопления суммарных значений для подпрограммы целиком */
+	        $total = array('amount' => 0, 'num' => 0);
+	        
+	        /* Перебираем госконтракты из группы */
+	        foreach ($group as $gk) {
+	            $total['num']++;
+	            $total['amount'] += $gk['financing']; 
+	        }
+	        
+	        /* Берём идентификатор подпрограммы из первого госконтракта в группе */
+	        $first = reset($group);
+	        $id = $first['subprogram_id'];
+	        assert(isset($data[$id]));
+	        
+	        /* Обновляем данные подпрограммы */
+	        $subprogram = & $data[$id];
+	        /* Уменьшаем остаток финансирования на сумму заключенных госконтрактов */
+	        $subprogram['leftover_amount'] -= $total['amount'];
+	        /* Добавляем суммарные данные о заключенных госконтрактах */
+	        $subprogram['signed_gk_amount'] = $total['amount']; 
+	        $subprogram['signed_gk_num'] = $total['num'];
+	    }
+	    
+	    if ($debug) {
+	        echo pre($data);
+	    }
+	    
+		if (empty($_GET['subprogram_id'])) {	
+	    /* формирование эксель файла с отчетом по общей финансовой справке */ 
+		
+		$fpath='/var/www/dgpgm/files/excel/finance.xls';
+		  //$fpath='c:\excel\fifnance.xls';
+		if (file_exists($fpath) ) 
+				  {
+				    unlink ($fpath);
+				  }
+				// Include PEAR::Spreadsheet_Excel_Writer
+				require_once "Spreadsheet/Excel/Writer.php";
+				// Create an instance, passing the filename to create
+				$xls =& new Spreadsheet_Excel_Writer($fpath);
+				
+				$xls->setVersion(8); 
+		
+	    		// Add a worksheet to the file, returning an object to add data to
+				$cart =& $xls->addWorksheet('Finance report');
+				$cart->setInputEncoding('UTF-8'); 
+				
+				// какой нибудь текст в роли заголовка листа 
+				$titleText = 'Финансовая справка по реализации программы'; 
+				// Создание объекта форматирования 
+				$titleFormat =& $xls->addFormat(); 
+				$titleFormat->setFontFamily('Times New Roman'); 
+				$titleFormat->setBold(); 
+				$titleFormat->setSize('12'); 
+				$titleFormat->setColor('navy'); 
+				$titleFormat->setBorder(2); 
+				$titleFormat->setBorderColor('navy'); 
+				$titleFormat->setHAlign('center');
+				$titleFormat->setVAlign('vcenter');	
+				$cart->write(1,0,$titleText,$titleFormat); 
+				for ($i=1;$i<7;$i++) { $cart->write(1,$i,'',$titleFormat);  }
+				$cart->mergeCells(1,0,1,6);
+				$cart->setRow(1,30);
+				$cart->setColumn(0,0,5);
+				$cart->setColumn(1,1,35);
+				$cart->setColumn(2,6,15);
+				
+				// задание заголовков столбцов таблицы
+				$coltitleformat = & $xls->addFormat();
+				$coltitleformat->setFontFamily('Times New Roman'); 
+				$coltitleformat->setBold(); 
+				$coltitleformat->setSize('10'); 
+				$coltitleformat->setColor('navy'); 
+				$coltitleformat->setHAlign('center');
+				$coltitleformat->setVAlign('vcenter');
+				$coltitleformat->setBorder(1);
+				$coltitleformat->setTextWrap();
+				
+				$colformat = & $xls->addFormat();
+				$colformat->setFontFamily('Times New Roman'); 
+				$colformat->setSize('9'); 
+				$colformat->setColor('navy'); 
+				$colformat->setHAlign('center');
+				$colformat->setVAlign('vcenter');
+				$colformat->setTextWrap();
+				$colformat->setBorder(1);
+				
+			    $cart->write(2,0,'№',$coltitleformat);
+				$cart->write(3,0,'',$coltitleformat);
+				$cart->mergeCells(2,0,3,0);
+				$cart->write(2,1,'Подпрограмма',$coltitleformat);
+				$cart->write(3,1,'',$coltitleformat);
+				$cart->mergeCells(2,1,3,1);
+				$cart->write(2,2,'Плановое финансирование на '.$cur_year.' г., млн. руб.',$coltitleformat);
+				$cart->write(3,2,'',$coltitleformat);
+				$cart->mergeCells(2,2,3,2);
+				$cart->write(2,3,'Заключенные до '.$cur_year.' г. контракты',$coltitleformat);
+				$cart->write(2,4,'',$coltitleformat);
+				$cart->mergeCells(2,3,2,4);
+				$cart->write(3,3,'Сумма финансирования на '.$cur_year.' г., млн. руб.',$coltitleformat);
+				$cart->write(3,4,'Количество',$coltitleformat);
+				$cart->write(2,5,'Остаток',$coltitleformat);
+				$cart->write(2,6,'',$coltitleformat);
+				$cart->mergeCells(2,5,2,6);
+				$cart->write(3,5,'Сумма, млн. руб.',$coltitleformat);
+				$cart->write(3,6,'Количество',$coltitleformat);
+					
+				// заморозка верхних строк таблицы
+				$freeze = array(4,0); 
+				$cart->freezePanes($freeze);  
+				
+				// вывод самих значений
+				$element_count=count($data);
+				$currow=4;
+				foreach ($data as $data_element)
+				  {
+				    $fin=round($data_element['financing']/1000000,3);
+					$sga=round($data_element['signed_gk_amount']/1000000,3);
+					$loa=round($data_element['leftover_amount']/1000000,3);
+					$cart->write($currow,0,' '.$data_element['id'],$colformat);
+					$cart->write($currow,1,$data_element['title'],$colformat);
+					$cart->write($currow,2,"$fin",$colformat);
+					$cart->write($currow,3,"$sga",$colformat);
+					$cart->write($currow,4,$data_element['signed_gk_num'],$colformat);
+					$cart->write($currow,5,"$loa",$colformat);
+					$cart->write($currow,6,$data_element['leftover_num'],$colformat);
+					$currow++;
+				  }
+				// добавление итоговой строки
+					$cart->write($currow,1,'Всего по программе',$colformat);
+					$cart->write($currow,0,'',$colformat);
+					for ($col=2;$col<7;$col++)
+					  {
+						$cell1 = Spreadsheet_Excel_Writer::rowcolToCell(4, $col);
+						$cell2 = Spreadsheet_Excel_Writer::rowcolToCell($currow-1, $col);
+						$formula="=SUM($cell1:$cell2)";
+						$cart->writeFormula($currow,$col,$formula,$colformat); 
+					  }
+	   		$xls->close();
 	
-    $TPL['program_data'] = json_encode($data);
-    $TPL['year'] = $cur_year;
-               
+		/* конец формирования эксель файла с отчетом по общей финансовой справке */
+			}
+		
+	    $TPL['program_data'] = json_encode($data);
+	    $TPL['year'] = $cur_year;
+    }
+                   
     if (!empty($_GET['subprogram_id'])) {
         $subprogram_id = intval($_GET['subprogram_id']);
         
         /* Начальные остатки суммы финансирования и количества госконтрактов */
-/*
-        $sql = sql_placeholder('
-            SELECT m.id, m.title, mp.financing, mp.gk_count
-            FROM ?#FK_MEASURE m, ?#FK_MEASURE_PLAN mp
-            
-            WHERE mp.year = "' . $cur_year . '" AND
-                  mp.measure_id = m.id AND
-                  m.subprogram_id = ' . $subprogram_id . '
-	        ORDER BY m.id;
-	        ');
-print_r($sql);
-echo "<br><br>";
-*/
         $sql = sql_placeholder('
 		SELECT *
 		FROM
@@ -594,7 +578,7 @@ echo "<br><br>";
         $TPL['subprogram_data'] = json_encode($data);
         $TPL['subprogram_id'] = $subprogram_id;
         $TPL['date'] = date('d.m.Y');
-    }
+    }  
     
     include TPL_CMS_STATS . 'finance-program-result.php';
     

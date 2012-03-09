@@ -22,6 +22,7 @@ line-height: 2;
 }
 </style>
 
+<?php if (!isset($TPL['subprogram_data'])): ?>
 <script>
     renderProgramTable(<?=$TPL['program_data']?>, "<?=$TPL['year']?>", "gridProgramContainer");
 </script>
@@ -29,6 +30,7 @@ line-height: 2;
 <h1>Финансовая справка по реализации программы</h1><br />
 
 <div id="gridProgramContainer"></div>
+<?php endif; ?>
 
 <?php if (isset($TPL['subprogram_data'])): ?>
 <script>

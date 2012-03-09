@@ -5,7 +5,7 @@ function renderProgramTable(data, year, container) {
         if ('no_link' in title) {
             return title.title;
         }
-        return  '<a href="/stats/finance-program/' + title.id + '/">' + title.title + '</a>';
+        return  '<a target="_blank" href="/stats/finance-program/' + title.id + '/">' + title.title + '</a>';
     }
     
     require(["dojo/store/Memory","dojo/data/ObjectStore","dojox/grid/DataGrid", "dojo/domReady!"], function() {
