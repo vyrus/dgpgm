@@ -31,6 +31,14 @@ class ManagerStats{
                     include ACTIONS_STATS . 'finance-program.php';
                 break;
 				
+				case($action == 'finance-program_summa'):
+                    include ACTIONS_STATS . 'finance-program_summa.php';
+                break;
+				
+				case($action == 'finance-program_gk'):
+                    include ACTIONS_STATS . 'finance-program_gk.php';
+                break;
+				
 				case($action =='spravka'):
 					include ACTIONS_STATS."spravka.php";
                 break;
