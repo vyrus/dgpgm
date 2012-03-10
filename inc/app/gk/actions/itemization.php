@@ -1,5 +1,5 @@
 <?php
-if ($_POST) 
+if (isset($_POST['send'])) 
 {
     /*chosen subprogram*/
     $subProgram = $_POST['pp'];
@@ -25,7 +25,7 @@ if ($_POST)
 
     if ($signingYear != 'all')
     {
-        $y_condition = 'and gk.signing_date = '.$signingYear;
+        $y_condition = 'and YEAR(gk.signing_date) = "'.$signingYear.'"';
     }
     
     $sql = sql_placeholder('
@@ -72,7 +72,7 @@ if ($_POST)
 	');
 	
     $gk_data = $this->db->_array_data($sql);
-	//print_r($gk_data);
+	//print_r($sql);
 	if (!empty($gk_data))
     {
     	$TPL['DATA'] = json_encode($gk_data);    

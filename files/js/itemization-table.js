@@ -8,7 +8,7 @@ function renderItemizationTable(data, container) {
         return  '<a target="_blank" href="/stats/finance-program/' + title.id + '/">' + title.title + '</a>';
     }
     
-    require(["dojo/store/Memory","dojo/data/ObjectStore","dojox/grid/DataGrid", "dojo/domReady!"], function() {
+    require(["dojo/store/Memory","dojo/data/ObjectStore", "dojox/grid/EnhancedGrid", "dojox/grid/enhanced/plugins/Pagination", "dojo/domReady!"], function() {
         
         var store = new dojo.store.Memory({data: data, idProperty: 'id'});
         var dataStore = new dojo.data.ObjectStore({ objectStore: store });
@@ -20,21 +20,21 @@ function renderItemizationTable(data, container) {
         var row, row_num = 1;
         row = [
             {
-                name: '№',
-                width: '50px',
+                name: '№ п/п',
+                width: '30px',
                 field: 'id',
                 get: function() { return row_num++; }
             },
             
             {
-                name: 'Номер ГК',
-                width: '50px',
+                name: '№ ГК',
+                width: '30px',
                 field: 'id',
             },
             
             {
                 name: 'Дата заключения ГК',
-                width: '100px',
+                width: '80px',
                 field: 'signing_date'
             },
             
@@ -74,19 +74,19 @@ function renderItemizationTable(data, container) {
             
             {
                 name: 'Дата окончания работ',
-                width: '100px',
+                width: '80px',
                 field: 'finish_date'
             },
             
             {
                 name: 'Согласование',
-                width: '100px',
+                width: '250px',
                 field: 'matching_organization'
             },
             
             {
                 name: 'Файлы',
-                width: '100px',
+                width: '70px',
                 field: 'id'
             }            
         ];
@@ -94,11 +94,27 @@ function renderItemizationTable(data, container) {
         console.info('Structure', struct);
         
         // create a new grid:
-        var grid = new dojox.grid.DataGrid({
+        var grid = new dojox.grid.EnhancedGrid({
             query: {},
             store: dataStore,
             structure: struct,
-            id: 'grid_itemization'
+            id: 'grid_itemization',
+            
+            ///*
+            plugins: {
+                pagination: {
+                    pageSizes: ["5", "10", "14"],
+                    description: true,
+                    sizeSwitch: true,
+                    pageStepper: true,
+                    gotoButton: true,
+                            // page step to be displayed
+                    maxPageStep: 4,
+                            // position of the pagination bar
+                    position: "bottom"
+                }
+              }
+			//*/
         }, document.createElement('div'));
 
         // append the new grid to the div:
