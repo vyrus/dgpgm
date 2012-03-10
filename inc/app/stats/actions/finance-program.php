@@ -39,7 +39,6 @@
             WHERE m2.subprogram_id = sp.id AND
                   mp2.measure_id = m2.id AND
               mp2.year = "' . $cur_year . '"
-        
         ) AS num_signed_gk
         FROM ?#FK_MEASURE_PLAN mp, ?#FK_MEASURE m, ?#FK_SUBPROGRAM sp
         
@@ -68,7 +67,7 @@
             /* Сумма цен всех этапов ГК */
             SELECT SUM(st.price)
             FROM ?#FK_STEPGK AS st
-            WHERE YEAR(st.finish_date) = "' . $cur_year . '" AND
+            WHERE YEAR(st.act_financing_date) = "' . $cur_year . '" AND
                   st.GK_id = gk.id
             GROUP BY st.GK_id
         
@@ -315,7 +314,7 @@ echo "<br><br>";
 	            /* Сумма цен всех этапов ГК */
 	            SELECT SUM(st.price)
 	            FROM ?#FK_STEPGK AS st
-	            WHERE YEAR(st.finish_date) = "' . $cur_year . '" AND
+	            WHERE YEAR(st.act_financing_date) = "' . $cur_year . '" AND
 	                  st.GK_id = gk.id
 	            GROUP BY st.GK_id
 	        
@@ -408,7 +407,6 @@ echo "<br><br>";
             echo pre($rows_3);
         }
         
-
         $data = array();
         
         foreach ($rows_1 as $row) {

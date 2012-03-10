@@ -18,7 +18,7 @@ function get_field_name(prop_name, year)
 function makeOut(data)
 {
 console.info(data);
-    require(["dojo/store/Memory","dojo/data/ObjectStore","dojox/grid/DataGrid", "dojo/domReady!"], function() {
+    require(["dojo/store/Memory","dojo/data/ObjectStore", "dojox/grid/EnhancedGrid", "dojox/grid/enhanced/plugins/Pagination", "dojo/domReady!"], function() {
         /* storage forming
 
          example:
@@ -246,7 +246,7 @@ console.info(data);
     console.info('Struct', struct);
     
         // create a new grid:
-        var grid4 = new dojox.grid.DataGrid(
+        var grid4 = new dojox.grid.EnhancedGrid(
         {
                 query : {},
                 store : dataStore,
@@ -263,7 +263,23 @@ console.info(data);
                                 e.grid.setSortIndex(e.cell.index);
                                 e.grid.onHeaderClick(e);
                         }*/
-                }
+                },
+                
+                ///*
+                plugins: {
+                    pagination: {
+                        pageSizes: ["5", "10", "14"],
+                        description: true,
+                        sizeSwitch: true,
+                        pageStepper: true,
+                        gotoButton: true,
+                                // page step to be displayed
+                        maxPageStep: 4,
+                                // position of the pagination bar
+                        position: "bottom"
+                    }
+                  }
+    			//*/
 
         }, document.createElement('div'));
 
@@ -281,6 +297,8 @@ console.info(data);
             
             grid.focus.styleRow(row);
             grid.edit.styleRow(row);
+            
+            styleHiddenCells();
         });
         
         // append the new grid to the div "gridContainer4":

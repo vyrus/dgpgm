@@ -5,7 +5,9 @@ include TPL_CMS."_header.php";
 
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/resources/dojo.css">
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/claro/claro.css">
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/grid/resources/claroGrid.css">
+<!--<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/grid/resources/claroGrid.css">-->
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/grid/enhanced/resources/claro/EnhancedGrid.css">
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/grid/enhanced/resources/EnhancedGrid_rtl.css">
 
 <link rel="stylesheet" href="/files/css/gridstyle.css">
 
@@ -29,7 +31,6 @@ include TPL_CMS."_header.php";
 <h2><?=$TPL['STATTITLE']?></h2>
 <div id="gridContainer"></div>
 
-<br />
 <div style="text-align: center;"><a href="/files/excel/course.xls">Сформировать файл Excel</a></div>
 
 <?/*

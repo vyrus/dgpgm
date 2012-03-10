@@ -48,7 +48,7 @@
 		
 		LEFT JOIN
 		(
-        	SELECT mp.measure_id me4_id, mp.year y1, (mp.financing DIV 1000) financing, 
+        	SELECT mp.measure_id me4_id, mp.year y1, (mp.financing / 1000) financing, 
                    mp.gk_count, mp.tender_count
             FROM ?#FK_MEASURE_PLAN mp
         ) tab1
@@ -56,7 +56,7 @@
 		
         LEFT JOIN 
         (
-            SELECT (SUM(sum) DIV 1000) financed, 
+            SELECT (SUM(sum) / 1000) financed, 
                    gk.measure_id me3_id, YEAR(po.date) p_date
             FROM `payment_order` po, stepGK sgk, GK gk
             WHERE `status` <> "отменено" AND
@@ -91,7 +91,7 @@
         ORDER BY tab0.sp_id, tab0.measure_id, tab0.year', $startYear, $finishYear);
 //echo '<!--' . print_r($sql).'<br>--<br> -->';
 	$work_steps = $this->db->_array_data($sql);
-//	print_r($work_steps);
+	//print_r($work_steps);
 	if (!empty($work_steps))
     {
         $data = array();
@@ -186,7 +186,7 @@
             }
         }
         
-        echo '<!--' . print_r($data, true) . '-->';
+        //echo '<!--' . print_r($data, true) . '-->';
 		
 		// Start creating excel file
 		

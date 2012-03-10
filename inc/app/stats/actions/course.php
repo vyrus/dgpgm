@@ -98,13 +98,14 @@
 				GROUP by me5_id
 			) tab6
 			ON tab6.me5_id = tab0.measure_id
+			ORDER BY tab0.sp_id, tab0.measure_id
 		');
 
 		$sql2=sql_placeholder('
 			SELECT *, (tab1.tender_commited_money - tab2.winners_money) economy
 			FROM
 			(
-				SELECT (SUM(lp.price) DIV 1000) tender_commited_money, lp.year, t.measure_id me1_id, sp.id sp_id
+				SELECT (SUM(lp.price) / 1000) tender_commited_money, lp.year, t.measure_id me1_id, sp.id sp_id
 				FROM lot_price lp, lot l, tender t, ?#FK_SUBPROGRAM sp, ?#FK_MEASURE m
 				WHERE m.id=t.measure_id
 				AND lp.lot_id = l.id	
@@ -120,7 +121,7 @@
 			
 			LEFT JOIN
 			(
-				SELECT  (SUM(sgk.price) DIV 1000) winners_money, YEAR(sgk.finish_date) works_year, gk.measure_id me2_id
+				SELECT  (SUM(sgk.price) / 1000) winners_money, YEAR(sgk.finish_date) works_year, gk.measure_id me2_id
 				FROM bidGK bgk, lot l, tender t, stepGK sgk, GK gk
 				WHERE sgk.GK_id = gk.id
 				AND gk.bidGK_id = bgk.id
@@ -133,15 +134,16 @@
 			) tab2
 			ON tab2.works_year = tab1.year
 			AND tab1.me1_id = tab2.me2_id
+			ORDER BY tab1.sp_id, tab1.me1_id			
 		');
-			
-/*print_r($sql1);		
+/*			
+print_r($sql1);		
 echo "<br>-----<br>";
-print_r($sql2);*/
-
+print_r($sql2);
+*/
     $work_steps1 = $this->db->_array_data($sql1);
     $work_steps2 = $this->db->_array_data($sql2);
-
+			
     $data = array();
 	$m_titles = array();
 	$sp_titles = array();
@@ -156,8 +158,8 @@ print_r($sql2);*/
                
             //if first item
             if ($item[$indicator_name] != $indicator) {
-                $groups[$indicator] = $group;
-                $indicator = $item[$indicator_name];
+            	$groups[$indicator] = $group;
+            	$indicator = $item[$indicator_name];
                 $group = array();
             }
                 
@@ -171,37 +173,6 @@ print_r($sql2);*/
         return $groups;
     }
     
-	/* Группировка элементов по значению ключа-индикатора */
-/*    function key_group_by($items, $indicator_name) {
-        $indicator = null;
-        $groups = array();
-    	$group = array();
-        $first_item_has_been = true;
-            
-        foreach ($items as $item) {
-            if ($first_item_has_been) {
-        	    $first_item_has_been = false;
-				$indicator = $item[$indicator_name];                    
-            }
-               
-            //if first item
-            if ($item[$indicator_name] != $indicator) {
-            	$first_item_has_been = true;
-                $groups[$indicator] = $group;
-            	$indicator = $item[$indicator_name];
-                $group = array();
-            }
-                
-            $group[] = $item;
-        }
-            
-        if (sizeof($group) > 0) {
-            $groups[$indicator] = $group;
-        }
-            
-        return $groups;
-    }
-  */  
 	/*Непериодические показатели*/
     if (!empty($work_steps1))
     {
@@ -217,7 +188,6 @@ print_r($sql2);*/
         
         foreach ($subprograms as $sp_id => $subprogram_measures)
         {
-//print_r($subprogram_measures);
         	$prop_values[$sp_id] = array();
         	/* Суммарные знания показателей по годам для всей подпрограммы */
             $subprogram_totals[$sp_id] = array();
@@ -258,6 +228,13 @@ print_r($sql2);*/
     }
 	/*ео Непериодические показатели*/
 
+    
+    /* 
+     * Список годов, который будет потом использоваться, чтобы заполнить нулями 
+     * те показатели, для которых не найдено данных и соответствующие ключи в 
+     * массиве $prop_values[$sp_id][$m_id] не были даже проинициализированы 
+     */
+    $years_list = array();
     
     /* 
      * Список годов, который будет потом использоваться, чтобы заполнить нулями 

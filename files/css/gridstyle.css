@@ -1,7 +1,7 @@
 @CHARSET "UTF-8";
     #grid, #grid_program, #grid_subprogram
     {
-        height: 570px;
+        height: 600px;
         width: 100%;
     }
     button

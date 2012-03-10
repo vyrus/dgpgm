@@ -5,6 +5,7 @@ include TPL_CMS."_header.php";
 ?>
 
 <script>
+<?/*
 $(document).ready(function () {
 	
 	function showMr(pp_id, mr_id)
@@ -59,6 +60,26 @@ $(document).ready(function () {
 		showMr(<?=$_TPL['ROW']['pp']?>, false);
 	<?} ?>
 		
+});*/?>
+
+$(document).ready(function () {
+	
+	function showMr(mr_id)
+    {
+		var mr = mr_id.split('_')[0];
+		var pp = mr_id.split('_')[1];
+		var ppn = mr_id.split('_')[2];		
+		$('#mr').val(mr);
+		$('#pp').val(pp);
+		$('#pp_title').html('<strong>Выбранная продпрограмма</strong>');
+		$('#pp_name').text(ppn);
+	}
+	
+	$('#measure').change(function () {
+        var mr_id = $(this).val();
+		showMr(mr_id);
+	});
+
 });
 </script>
 
@@ -68,6 +89,28 @@ $(document).ready(function () {
 <h3>Для регистрации заявки:</h3>
 <form method="POST">
 <table style="width: 100%;">
+<tr>
+	<td><strong>Выберите мероприятие</strong> <span style="color: red;">*</span></td>
+	<td><select name="measure" id="measure">
+			<option value="0">Не выбрано</option>
+			<?	foreach ($TPL['SUBPROGRAM'] as $row) { ?>
+			<option value="<?=$row['id']?>_<?=$row['subprogram_id']?>_<?=$row['title_sp']?>"<?=($_TPL['ROW']['measure'] == $row['id'])?" selected='selected'":""?>><?=$row['id']?>. <?=utf8_str_word($row['title'], 6, ' ')?></option>
+			<? } ?>
+		</select>		
+	</td>
+</tr>
+
+<input type="hidden" name="pp" id="pp" value="<?=(!empty($_TPL['ROW']['pp']))?$_TPL['ROW']['pp']:''?>" />
+
+<input type="hidden" name="mr" id="mr" value="<?=(!empty($_TPL['ROW']['mr']))?$_TPL['ROW']['mr']:''?>" />
+
+<tr>
+	<td><div id="pp_title"></div></td>
+	<td><div id="pp_name"></div></td>
+</tr>
+
+
+<?/*
 <tr>
 	<td><strong>Выберите подпрограмму</strong> <span style="color: red;">*</span></td>
 	<td><select name="pp" id="pp">
@@ -85,6 +128,7 @@ $(document).ready(function () {
 		</select>
 	</td>
 </tr>
+*/?>
 <tr>
 	<td><strong>Укажите статус заявителя</strong> <span style="color: red;">*</span></td>
 	<td>
