@@ -1,5 +1,5 @@
 @CHARSET "UTF-8";
-    #grid, #grid_program, #grid_subprogram
+    #grid, #grid_program, #grid_subprogram, #grid_itemization
     {
         height: 600px;
         width: 100%;

@@ -37,6 +37,7 @@ RewriteRule ^gk$ index.php?mod=gk
 RewriteRule ^gk/search_organization$ index.php?mod=gk&action=search_organization
 RewriteRule ^gk/edit_organization/([0-9]+)$ index.php?mod=gk&action=edit_organization&id=$1
 RewriteRule ^gk/data_step$ index.php?mod=gk&action=data_step
+RewriteRule ^gk/itemization$ index.php?mod=gk&action=itemization
 RewriteRule ^gk/([0-9]+)/data_bid$ index.php?mod=gk&action=data_bid&id=$1
 RewriteRule ^gk/([0-9]+)/data_bid/([0-9]+)$ index.php?mod=gk&action=data_bid&id=$1&id_org=$2
 
