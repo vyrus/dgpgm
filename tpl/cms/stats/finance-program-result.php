@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/resources/dojo.css">
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/claro/claro.css">
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/grid/resources/claroGrid.css">
-
 <link rel="stylesheet" href="/files/css/gridstyle.css">
 <style>
  	.claro .dojoxGridInvisible .dojoxGridCell 
@@ -23,6 +22,7 @@ line-height: 2;
 }
 </style>
 
+<?php if (!isset($TPL['subprogram_data'])): ?>
 <script>
     renderProgramTable(<?=$TPL['program_data']?>, "<?=$TPL['year']?>", "gridProgramContainer");
 </script>
@@ -30,6 +30,7 @@ line-height: 2;
 <h1>Финансовая справка по реализации программы</h1><br />
 
 <div id="gridProgramContainer"></div>
+<?php endif; ?>
 
 <?php if (isset($TPL['subprogram_data'])): ?>
 <script>

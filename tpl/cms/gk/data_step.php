@@ -100,7 +100,9 @@
     </center>
 
 	</form>
-
+    <form method="post" action="index.php"> <!--//<?=TPL_CMS_GK?>вписать путь к форме "ГК"//-->
+    <input type="submit" name="s_GK" value="Вернуться" >
+    </form>
 <?
     include TPL_CMS."_footer.php";
 ?>

@@ -42,6 +42,10 @@ class ManagerGk extends MysqlDB {
 					include ACTIONS_GK."data_step.php";
                 break;
 
+				case($action =='data_payment_order'):
+					include ACTIONS_GK."data_payment_order.php";
+                break;
+
 				case($action =='data_bid'):
 					include ACTIONS_GK."data_bid.php";
                 break;

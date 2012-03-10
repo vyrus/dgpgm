@@ -7,27 +7,54 @@ function renderProgramTable(data, year, container) {
         }
         return  '<a href="/stats/finance-program/' + title.id + '/">' + title.title + '</a>';
     }
+	
+	function subprogram_link_formatter1(signed_gk_num) {
+        if ('no_link' in signed_gk_num) {
+            return signed_gk_num.signed_gk_num;
+        }
+		return  '<a href="/stats/finance-program/gk/' + signed_gk_num.id + '/">' + signed_gk_num.signed_gk_num + '</a>';
+    }
+	
+	function subprogram_link_formatter2(signed_gk_amount) {
+        if ('no_link' in signed_gk_amount) {
+		    signed_gk_amount.signed_gk_amount = signed_gk_amount.signed_gk_amount / 1000000;
+			signed_gk_amount.signed_gk_amount = Math.round(signed_gk_amount.signed_gk_amount * 1000) / 1000;
+			return signed_gk_amount.signed_gk_amount.toString();
+           }
+		signed_gk_amount.signed_gk_amount = signed_gk_amount.signed_gk_amount / 1000000;
+		signed_gk_amount.signed_gk_amount = Math.round(signed_gk_amount.signed_gk_amount * 1000) / 1000;
+		return  '<a href="/stats/finance-program/summa/' + signed_gk_amount.id + '/">' + signed_gk_amount.signed_gk_amount + '</a>';
+    }
     
     require(["dojo/store/Memory","dojo/data/ObjectStore","dojox/grid/DataGrid", "dojo/domReady!"], function() {
         var restruct_data = [], total, idx, jdx, entry;
         var prop, props = ['financing', 'signed_gk_amount', 'signed_gk_num', 
                            'leftover_amount', 'leftover_num'];
         
-        total = {id: '', title: {no_link: true, title: 'Итого'}, total: true};
+        total = {id: '', title: {no_link: true, title: 'Итого'}, 
+		signed_gk_num: {no_link: true, signed_gk_num: 'Итого'},
+		signed_gk_amount: {no_link: true, signed_gk_amount: 'Итого'},		
+		total: true};
         
         for (idx in props) {
             prop = props[idx];
-            total[prop] = 0;
+            if (prop=='signed_gk_num') total.signed_gk_num.signed_gk_num=0; else 
+			if (prop=='signed_gk_amount') total.signed_gk_amount.signed_gk_amount=0; else 
+			total[prop] = 0;
         }                    
         
         for (idx in data) {
             entry = data[idx];
             entry.title = {id: entry.id, title: entry.title};
+			entry.signed_gk_num = {id: entry.id, signed_gk_num: entry.signed_gk_num};
+			entry.signed_gk_amount = {id: entry.id, signed_gk_amount: entry.signed_gk_amount};
             restruct_data.push(entry);
             
             for (jdx in props) {
                 prop = props[jdx];
-                total[prop] += entry[prop] * 1;
+                if (prop=='signed_gk_num') total.signed_gk_num.signed_gk_num += entry.signed_gk_num.signed_gk_num * 1;
+				else if (prop=='signed_gk_amount') total.signed_gk_amount.signed_gk_amount += entry.signed_gk_amount.signed_gk_amount * 1;
+				else total[prop] += entry[prop] * 1;
             }
         }
         restruct_data.push(total);
@@ -111,13 +138,14 @@ function renderProgramTable(data, year, container) {
             {
                 name: 'Сумма финансирования на ' + year + ' г., млн. руб.',
                 field: 'signed_gk_amount',
-                formatter: million_formatter,
+                formatter: subprogram_link_formatter2, //million_formatter,
                 headerClasses: 'staticHeader'
             },
             
             {
                 name: 'Количество',
                 field: 'signed_gk_num',
+				formatter: subprogram_link_formatter1,
                 headerClasses: 'staticHeader'
             },
             

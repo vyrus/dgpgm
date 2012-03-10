@@ -31,12 +31,15 @@ RewriteRule ^stats/course$ index.php?mod=stats&action=course
 RewriteRule ^stats/finance$ index.php?mod=stats&action=finance
 RewriteRule ^stats/finance-program/?([0-9]?)/?$ index.php?mod=stats&action=finance-program&subprogram_id=$1
 RewriteRule ^stats/spravka$ index.php?mod=stats&action=spravka
+RewriteRule ^stats/finance-program/summa/?([0-9]?)/?$ index.php?mod=stats&action=finance-program_summa&subprogram_id=$1
+RewriteRule ^stats/finance-program/gk/?([0-9]?)/?$ index.php?mod=stats&action=finance-program_gk&subprogram_id=$1
 
 RewriteRule ^gk$ index.php?mod=gk
 #RewriteRule ^gk/([0-9]+)/([a-zA-Z0-9_]+)/search_organization$ index.php?mod=gk&action=search_organization&id=$1&type=$2
 RewriteRule ^gk/search_organization$ index.php?mod=gk&action=search_organization
 RewriteRule ^gk/edit_organization/([0-9]+)$ index.php?mod=gk&action=edit_organization&id=$1
 RewriteRule ^gk/data_step$ index.php?mod=gk&action=data_step
+RewriteRule ^gk/data_payment_order$ index.php?mod=gk&action=data_payment_order
 RewriteRule ^gk/([0-9]+)/data_bid$ index.php?mod=gk&action=data_bid&id=$1
 RewriteRule ^gk/([0-9]+)/data_bid/([0-9]+)$ index.php?mod=gk&action=data_bid&id=$1&id_org=$2
 
