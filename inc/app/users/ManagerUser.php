@@ -193,6 +193,12 @@ class ManagerUser{
             $data['mr']=$row['mr'];
         }
 		
+		if ($row['measure'] == 0){
+			$error[]='Необходимо выбрать мероприятие';
+		}else{
+            $data['measure']=$row['measure'];
+        }
+		
 		if (empty($row['name'])){
 			$error[]='Укажите ФИО контактного лица';
 		} else {
@@ -520,7 +526,7 @@ class ManagerUser{
             
 				case($action=='reg' && !empty($_POST)):
 					if (USER_ID==1){
-						$TPL['SUBPROGRAM'] = ManagerForms::listSubprogram();
+						$TPL['SUBPROGRAM'] = ManagerForms::listActiveMeasure();
 						$tmp = $this->prepareRegData($_POST);
 						if(!count($tmp['error'])) {
 							//создаем заявку
@@ -585,6 +591,8 @@ class ManagerUser{
 						} else {
 							$_TPL['ERROR'] = $tmp['error'];
 							$_TPL['ROW']=$tmp['data'];
+							$tmp_expl = explode("_", $_TPL['ROW']['measure']);
+							$_TPL['ROW']['measure'] = $tmp_expl[0];
 							include TPL_CMS_USER."form_reg.php";
 						}
 						
@@ -597,7 +605,7 @@ class ManagerUser{
                      //   $_TPL['ROW']['login_1']=$_TPL['ROW']['login'];
 					 header('Location: /');
                     }
-					$TPL['SUBPROGRAM'] = ManagerForms::listSubprogram();
+					$TPL['SUBPROGRAM'] = ManagerForms::listActiveMeasure();
                     include TPL_CMS_USER."form_reg.php";
                 break;
 				

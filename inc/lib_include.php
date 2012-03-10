@@ -11,6 +11,7 @@
   include $_SERVER['DOCUMENT_ROOT']."/inc/app/error/modLoad.php";
   include $_SERVER['DOCUMENT_ROOT']."/inc/app/forms/modLoad.php";
   include $_SERVER['DOCUMENT_ROOT']."/inc/app/stats/modLoad.php";
+  include $_SERVER['DOCUMENT_ROOT']."/inc/app/gk/modLoad.php";
   #include $_SERVER['DOCUMENT_ROOT']."/inc/app/photo/modLoad.php";
   include $_SERVER['DOCUMENT_ROOT']."/inc/app/picbilder/MiniPicBilder.php";
   include $_SERVER['DOCUMENT_ROOT']."/inc/_config.php";

@@ -29,6 +29,12 @@ class ManagerForms{
 		return $this->db->_array_data($sql);
    }
 
+   	//Все активные мероприятия (куда можно подать заявку)
+	function listActiveMeasure(){
+		$sql=sql_placeholder('select m.*, sp.title as title_sp from ?#FK_MEASURE as m, ?#FK_MEASURE_HAS_NOTICE as mn, ?#FK_NOTICE as n, ?#FK_SUBPROGRAM as sp where m.id = mn.measure_id and mn.notice_id = n.id and m.subprogram_id = sp.id and n.finish_acquisition > NOW()  order by id asc');
+		return $this->db->_array_data($sql);
+   }
+   
    	//Информация об одной подпрограмме
 	function viewSubprogram($id){
 		$sql=sql_placeholder('select * from ?#FK_SUBPROGRAM where id=?', $id);
@@ -1048,11 +1054,12 @@ class ManagerForms{
 				break;
 				
 				case($action=='search_inn'):
+					
 					$inn = $_GET['inn'];
 					
 					if (USER_TYPE == 'yur') {
 					
-						$TPL['ORG'] = $this->listOrgInn($inn);
+					$TPL['ORG'] = $this->listOrgInn($inn);
 						
 					if (!empty($TPL['ORG'])) {
 							echo "<h3>Найдены следующие данные об организации:</h3>
@@ -1164,6 +1171,12 @@ class ManagerForms{
 					$TPL['ROW']=$this->viewOrganization($org);
 					unset($TPL['ROW']['id']);
 					include TPL_CMS_FORMS."vieworg.php";
+				break;
+				
+				case($action=='vieworgname' && $_GET['id']):
+					$org=intval($_GET['id']);
+					$TPL['ROW']=$this->viewOrganization($org);
+					echo $TPL['ROW']['full_title'];
 				break;
 				
 				case($action=='viewfiz' && $_GET['id']):

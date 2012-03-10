@@ -63,6 +63,10 @@ if (!empty($_POST['s'])){
 			$site = new ManagerStats($db);
 			$site->work();
 		break;
+		case "gk":
+			$site = new ManagerGk($db);
+			$site->work();
+		break;
 		case "forms":
 			$forms->work();
 		break;
