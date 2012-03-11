@@ -28,8 +28,8 @@ function renderItemizationTable(data, container) {
             
             {
                 name: '№ ГК',
-                width: '30px',
-                field: 'id',
+                width: '50px',
+                field: 'number',
             },
             
             {
@@ -40,8 +40,13 @@ function renderItemizationTable(data, container) {
             
             {
                 name: 'Мероприятие',
-                width: '300px',
-                field: 'title'                
+                width: '250px',
+                field: 'title',
+                get: function(inRowIndex) 
+                {
+                	var item = grid.getItem(inRowIndex);
+                	return item.mid + ' ' + item.title;
+                }
             },
             
             {
@@ -52,7 +57,7 @@ function renderItemizationTable(data, container) {
             
             {
                 name: 'Наименование работы',
-                width: '200px',
+                width: '250px',
                 field: 'work_title',
                 get: getCellVal,
                 formatter: function(data) {
@@ -69,7 +74,7 @@ function renderItemizationTable(data, container) {
             {
                 name: 'Наименование организации',
                 width: '200px',
-                field: 'id'
+                field: 'full_title'
             },
             
             {
@@ -86,8 +91,7 @@ function renderItemizationTable(data, container) {
             
             {
                 name: 'Файлы',
-                width: '70px',
-                field: 'id'
+                width: '50px'
             }            
         ];
         struct.cells.push(row);
@@ -99,6 +103,8 @@ function renderItemizationTable(data, container) {
             store: dataStore,
             structure: struct,
             id: 'grid_itemization',
+            onHeaderCellClick : function(e)
+            { return false;},
             
             ///*
             plugins: {

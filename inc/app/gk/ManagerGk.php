@@ -23,7 +23,13 @@ class ManagerGk extends MysqlDB {
 		$sql=sql_placeholder('select * from ?#FK_GK where id=?', $id);
 		return $this->db->select_row($sql);
    }
-
+	
+	// Информация о заявке ГК
+	function viewbidGK($id){
+		$sql=sql_placeholder('select * from ?#FK_BIDGK where id=?', $id);
+		return $this->db->select_row($sql);
+   }
+	
 	//Все подпрограммы
 	function listSubprogram(){
 		$sql=sql_placeholder('select * from ?#FK_SUBPROGRAM order by id asc');
@@ -70,7 +76,11 @@ class ManagerGk extends MysqlDB {
 					include ACTIONS_GK."itemization.php";
                 break;
 
-				case($action=='get_mr'):
+				case($action == 'gk'):
+					include ACTIONS_GK."gk.php";
+                break;
+				
+                case($action=='get_mr'):
 					$pp_id = @intval($_GET['pp_id']);
 					$r=$this->listMeasure($pp_id);
 					if ($r) {

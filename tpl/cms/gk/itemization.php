@@ -65,8 +65,8 @@
 	<? } ?>
 	</select><br>
 	
-	Выберите мероприятие:
-	<select name="mr" id="mr">
+	Выберите мероприятие:&nbsp;&nbsp;&nbsp;
+	<select name="mr" id="mr" style="width:1030px">
 		<option value="0">Все мероприятия</option>
 	</select><br>
 

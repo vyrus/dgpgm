@@ -10,12 +10,14 @@
 				if (!count($tmp['error'])){
 					$sql=sql_placeholder('update ?#FK_APP_ORG set ?% where id=? ', $_TPL['ROW'], $_GET['id']);
 					$this->db->query($sql);
-					$_TPL['ERROR'][] = 'Данные сохранены. <a href="'.$_COOKIE["refer"].'/'.$_GET['id'].'">Вернуться</a>';
+					$_TPL['ERROR'][] = 'Данные сохранены.';
 					
 				}
 		
 		}
-		
+		if ($_GET['type'] == 'bid') {
+			$back = '/gk/'.$_GET['id_gk'].'/data_bid';
+		}
 		$_TPL['BIDMENU']="";
 		
 		include TPL_CMS_GK."edit_organization.php";

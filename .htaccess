@@ -35,9 +35,10 @@ RewriteRule ^stats/finance-program/summa/?([0-9]?)/?$ index.php?mod=stats&action
 RewriteRule ^stats/finance-program/gk/?([0-9]?)/?$ index.php?mod=stats&action=finance-program_gk&subprogram_id=$1
 
 RewriteRule ^gk$ index.php?mod=gk
+RewriteRule ^gk/gk/?([0-9]+)/?$ index.php?mod=gk&action=gk&gk_id=$1
 #RewriteRule ^gk/([0-9]+)/([a-zA-Z0-9_]+)/search_organization$ index.php?mod=gk&action=search_organization&id=$1&type=$2
 RewriteRule ^gk/search_organization$ index.php?mod=gk&action=search_organization
-RewriteRule ^gk/edit_organization/([0-9]+)$ index.php?mod=gk&action=edit_organization&id=$1
+RewriteRule ^gk/([0-9]+)/([a-zA-Z0-9_]+)/edit_organization/([0-9]+)$ index.php?mod=gk&action=edit_organization&id=$3&id_gk=$1&type=$2
 RewriteRule ^gk/data_step$ index.php?mod=gk&action=data_step
 RewriteRule ^gk/itemization$ index.php?mod=gk&action=itemization
 RewriteRule ^gk/data_payment_order$ index.php?mod=gk&action=data_payment_order

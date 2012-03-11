@@ -38,7 +38,7 @@
 				</li>
 				<li>Государственные контракты
 				<ul>
-					<li><a href="/gk">Перечень</a></li>
+					<li><a href="/gk/itemization">Перечень</a></li>
 				</ul>
 				</li>
 				

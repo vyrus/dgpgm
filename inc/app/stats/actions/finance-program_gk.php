@@ -16,6 +16,13 @@
                    print_r($var, true) . $crlf . 
                '-->' . $crlf;
     }
+	
+	function change_data_format($date)
+    {
+	  $values=explode('-',$date);
+	  $d=date("d.m.Y",mktime(0,0,0,$values[1],$values[2],$values[0]));
+	  return $d;
+	}
     
     $debug = true;
     $cur_year = date('Y');
@@ -72,7 +79,7 @@
 			$row1 = $this->db->_array_data($sql);
 			foreach ($row1 as $r1)
 			  {
-			    $s=round($r1['sum'],2).' руб. ('.$r1['number'].' этап, '.$r1['type'].') - выплачено '.$r1['date'];
+			    $s=round($r1['sum'],2).' руб. ('.$r1['number'].' этап, '.$r1['type'].') - выплачено '.change_data_format($r1['date']);
 				$data[$i]['sums'][]=$s;
 			  }
 			
@@ -84,7 +91,7 @@
 			$row1 = $this->db->_array_data($sql);
 			foreach ($row1 as $r1)
 			  {
-			    $s=round($r1['p'],2).' руб. ('.$r1['number'].' этап, аванс) - план на '.$r1['p_date'];
+			    $s=round($r1['p'],2).' руб. ('.$r1['number'].' этап, аванс) - план на '.change_data_format($r1['p_date']);
 				$data[$i]['sums'][]=$s;
 			  }
 			
@@ -96,7 +103,7 @@
 			$row1 = $this->db->_array_data($sql);
 			foreach ($row1 as $r1)
 			  {
-			    $s=round($r1['f'],2).' руб. ('.$r1['number'].' этап, акт) - план на '.$r1['a_date'];
+			    $s=round($r1['f'],2).' руб. ('.$r1['number'].' этап, акт) - план на '.change_data_format($r1['a_date']);
 				$data[$i]['sums'][]=$s;
 			  }			
 			$i++;

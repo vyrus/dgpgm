@@ -32,9 +32,10 @@ if (isset($_POST['send']))
 		SELECT *
 		FROM
 		(
-		SELECT m.title, gk.id, gk.signing_date, gk.number, bgk.cifer, bgk.work_title, gk.matching_organization
-		FROM `GK` gk, measure m, bidGK bgk  
+		SELECT m.id mid, m.title, gk.id, gk.signing_date, gk.number, bgk.cifer, gk.work_title, gk.matching_organization, o.full_title 
+		FROM `GK` gk, measure m, bidGK bgk, applicant_organization o  
 		WHERE m.id=gk.`measure_id` 
+		AND o.id=gk.id_org_ind
 		AND bgk.id=gk.`bidGK_id`
 		'.$sp_condition.'
 		'.$m_condition.'
