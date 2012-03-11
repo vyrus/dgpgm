@@ -54,6 +54,12 @@
     });
 </script>
 
+    <style>
+        #itemizationTable {
+            font-size: 11px;
+        }
+    </style>
+
 	<h1>Государственные контракты</h1>
 
 	<form method="post">
@@ -61,13 +67,16 @@
 	<select name="pp" id="pp">
 		<option value="0">Все подпрограммы</option>
 	<?	foreach ($TPL['SUBPROGRAM'] as $row) { ?>
-		<option value="<?=$row['id']?>"><?=$row['title']?></option>
+		<option value="<?=$row['id']?>"<?= $TPL['SELECTED_SUBPROGRAM'] == $row['id'] ? ' selected' : ''?>><?=$row['title']?></option>
 	<? } ?>
 	</select><br>
 	
 	Выберите мероприятие:&nbsp;&nbsp;&nbsp;
 	<select name="mr" id="mr" style="width:1030px">
 		<option value="0">Все мероприятия</option>
+    <?    foreach ($TPL['MEASURES'] as $row) { ?>
+        <option value="<?=$row['id']?>"<?= $TPL['SELECTED_MEASURE'] == $row['id'] ? ' selected' : ''?>><?=$row['id'] . ' ' . $row['title']?></option>
+    <? } ?>
 	</select><br>
 
 	Выберите год заключения:
