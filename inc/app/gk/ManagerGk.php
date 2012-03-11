@@ -18,12 +18,30 @@ class ManagerGk extends MysqlDB {
 		return $this->db->_array_data($sql);
 	}
 	
-    //���������� � �����������
+    //Информация о госконтакте
 	function viewGk($id){
 		$sql=sql_placeholder('select * from ?#FK_GK where id=?', $id);
 		return $this->db->select_row($sql);
    }
 	
+	// Информация о заявке ГК
+	function viewbidGK($id){
+		$sql=sql_placeholder('select * from ?#FK_BIDGK where id=?', $id);
+		return $this->db->select_row($sql);
+   }
+	
+	//Все подпрограммы
+	function listSubprogram(){
+		$sql=sql_placeholder('select * from ?#FK_SUBPROGRAM order by id asc');
+		return $this->db->_array_data($sql);
+   }
+
+	// Все мероприятия подпрограммы
+	function listMeasure($id){
+		$sql=sql_placeholder('select * from ?#FK_MEASURE where subprogram_id=?', $id);
+		return $this->db->_array_data($sql);
+   }
+   
 	
     function work(){
             global $_TPL;  
@@ -53,7 +71,32 @@ class ManagerGk extends MysqlDB {
 				case($action =='edit_organization'):
 					include ACTIONS_GK."edit_organization.php";
                 break;
-				
+
+				case($action =='itemization'):
+					include ACTIONS_GK."itemization.php";
+                break;
+
+				case($action == 'gk'):
+					include ACTIONS_GK."gk.php";
+                break;
+
+
+				case($action=='get_mr'):
+					$pp_id = @intval($_GET['pp_id']);
+					$r=$this->listMeasure($pp_id);
+					if ($r) {
+						$measure = array();
+						$measure[] = array('id'=>'0', 'title'=>'Все мероприятия');
+						foreach ($r as $row) {
+							$measure[] = array('id'=>$row['id'], 'title'=>$row['title']);
+						}
+						$result = array('type'=>'success', 'measure'=>$measure);
+					} else {
+						$result = array('type'=>'error');
+					}
+					print json_encode($result);
+				break;
+                
             }
         }
 

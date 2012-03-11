@@ -42,6 +42,7 @@ line-height: 2;
 </tr>  
 
 <?
+   
   // вывод самих значений в сформированную таблицу
   $d = $TPL['DATA'];
   $i=1;
@@ -52,8 +53,7 @@ line-height: 2;
 	  echo '<td>'.$data_row['id'].'</td>'."\r\n";
 	  if ($data_row['s_title']!=='') echo '<td>'.$data_row['f_title'].'('.$data_row['s_title'].')'.'</td>'."\r\n";
 	  else echo '<td>'.$data_row['f_title'].'</td>'."\r\n";
-  	  echo '<td>'.$data_row['number'].' от '.$data_row['s_date'].'</td>'."\r\n";
-		  
+  	  echo '<td>'.$data_row['number'].' от '.change_data_format($data_row['s_date']).'</td>'."\r\n";
 	  echo "<td>";	
 	  foreach ($data_row['sums'] as $m_data)
 	    {
@@ -68,7 +68,7 @@ line-height: 2;
 </table>
 </div>
 <br />
-<div style="text-align: center;"><a href="/files/excel/finance.xls">Сформировать файл Excel</a></div>
+<div style="text-align: center;"><a href="#">Сформировать файл Excel</a></div>
 
 <?php
     include TPL_CMS."_footer.php";

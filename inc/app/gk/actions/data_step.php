@@ -5,7 +5,8 @@
 	if ($_POST and (isset($_POST['GK_id']))) {		// Попытка установить соединение с MySQL:
 		//mysql_select_db("dgpgm_kamenev_temp");
 
-        $q = mysql_query("SELECT MAX(id) FROM stepGK");
+        $sql = "SELECT MAX(id) FROM stepGK";
+        $q = $this->db->query($sql);
         $row['id'] = mysql_result($q, 0, 0)+1;
         $row['number'] = $_POST['number'];
         $date = explode(".", $_POST['start_date']);
@@ -32,12 +33,16 @@
         $row['GK_id'] = $_POST['GK_id'];
         $row['financing_act'] = $_POST['price']- $row['prepayment']; //Сумма этапа по ГК – Финансирование аванс
 
-        if (is_int($this->db->addrow(FK_STEPGK, $row))) {        	echo "Record added successfully!";        } else {        	echo "Error writing data!";        }
+        if (is_int($this->db->addrow(FK_STEPGK, $row))) {
+        	$res = "Запись успешно добавлена!";//echo "Record added successfully!";
+        } else {
+        	$res = "Ошибка записи данных!";//echo "Error writing data!";
+        }
 
 		//mysql_select_db("dgpgm");//_kamenev_temp");
 		include TPL_CMS_GK."data_step.php";
 	} else {
-        if ($_POST and (! isset($_POST['GK_id']))) {        	echo "Необходимо входить через страницу для заполнения ГК!";        }
+        if ($_POST and (! isset($_POST['GK_id']))) {        	$res = "Необходимо входить через страницу для заполнения ГК!";        }
 		include TPL_CMS_GK."data_step.php";
 	}
 	/*} else {

@@ -6,9 +6,20 @@
 
 <?
     if (isset($res)) {echo '<p style="color: red;">'.$res.'</p>';}
-    $_POST['id'] = 186;
-    $_POST['GK_id'] = 66;
-    if (isset($_POST['id']) && isset($_POST['GK_id'])) {    	$sql = "SELECT DISTINCT * FROM payment_order WHERE id=".$_POST['id'];//получить из формы редактирования ГК
+    //$_POST['id'] = 186;
+    //$_POST['GK_id'] = 66;
+    if (isset($_GET['addORedit']) && isset($_GET['stepGKnumber']) && isset($_GET['GK_id'])) {
+        $sql = "SELECT id FROM stepGK WHERE number=".$_GET['stepGKnumber']." AND GK_id=".$_GET['GK_id'];
+        $q = $this->db->query($sql);
+        $r = mysql_fetch_assoc($q);
+        $stepGK_id = $r['id'];
+        if ($_GET['addORedit'] == "add") {
+        	$sql = "SELECT MAX(id) FROM payment_order";
+        	$q = $this->db->query($sql);
+        	$r=mysql_fetch_assoc($q);
+        	$sql = "INSERT INTO payment_order(id, number, type, date, sum, status, stepGK_id) VALUES (".($r['MAX(id)']+1).",0,1,0000-00-00,0,1,".$stepGK_id.")";
+        }
+    	$sql = "SELECT DISTINCT * FROM payment_order WHERE id=".$_GET['id'];//получить из формы редактирования ГК
         $q = $this->db->query($sql);        $rowDB = mysql_fetch_assoc($q);
         //продолжение следует...
 ?>
@@ -30,7 +41,7 @@
     	<td style="width: 25%;">Номер этапа</td>
     	<td><select name="stepGKnumber">
     		<?
-            	$sql = "SELECT DISTINCT id,number FROM stepGK WHERE GK_id=".$_POST['GK_id']." ORDER BY stepGK.number ASC";//получить из формы редактирования ГК
+            	$sql = "SELECT DISTINCT id,number FROM stepGK WHERE GK_id=".$_GET['GK_id']." ORDER BY stepGK.number ASC";//получить из формы редактирования ГК
         		$q = $this->db->query($sql);
         		while($r=mysql_fetch_assoc($q)){        			$selected = '';
                     if ($rowDB['stepGK_id'] == $r['id']) {$selected = 'SELECTED';}        			echo '<option value="'.$r['number'].'" '.$selected.'>'.$r['number'].'</option>';

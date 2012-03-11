@@ -84,7 +84,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 <h1><?=$TPL['STATTITLE']?></h1><br />
 
 <div style="overflow: scroll;">
-<table style="font-size:9px;">
+<table style="font-size:9px;" border=1>
 <tr>
 <th rowpan="2"><div style="width:46px;padding : 5px;">№ п/п</div></th>
 <th rowpan="2"><div style="width:400px;">Мероприятие</div></th>
@@ -118,7 +118,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   foreach ($d as $data_row)
     {
 	  echo '<tr>'."\r\n";
-	  echo '<td>'.$i.'</td>'."\r\n";
+	  echo '<td align="center">'.$i.'</td>'."\r\n";
 	  echo '<td>'.$data_row['id'].' '.$data_row['title'].'</td>'."\r\n";
 	  foreach ($data_row['sums'] as $m_data)
 	    {
@@ -135,7 +135,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 </table>
 </div>
 <br />
-<div style="text-align: center;"><a href="/files/excel/finance.xls">Сформировать файл Excel</a></div>
+<div style="text-align: center;"><a href="#">Сформировать файл Excel</a></div>
 
 <?php
     include TPL_CMS."_footer.php";
