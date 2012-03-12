@@ -44,6 +44,7 @@ RewriteRule ^gk/itemization$ index.php?mod=gk&action=itemization
 RewriteRule ^gk/data_payment_order$ index.php?mod=gk&action=data_payment_order
 RewriteRule ^gk/([0-9]+)/data_bid$ index.php?mod=gk&action=data_bid&id=$1
 RewriteRule ^gk/([0-9]+)/data_bid/([0-9]+)$ index.php?mod=gk&action=data_bid&id=$1&id_org=$2
+RewriteRule ^gk/tender/([0-9]+)/?$ index.php?mod=gk&action=tender&gk_id=$1
 
 
 RewriteRule ^article([0-9]*)$ index.php?mod=article&action=view&id=$1
