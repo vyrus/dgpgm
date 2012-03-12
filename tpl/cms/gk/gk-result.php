@@ -66,6 +66,36 @@ tipobj.style.filter = 'alpha(opacity='+op*100+')';
 t = setTimeout('appear()', 30);
 }
 }
+<? /* search org */?>
+function loadSearch(){
+  $('#search_org').load('/gk/search_organization')
+}
+
+function selectOrg(id,title){
+  $('#select_org').text(title);
+  $('#select_org_id').val(id);
+  $('#search_org').text('');
+  $('#data_org').html('<a href="/gk/<?=$gk_id?>/gk/edit_organization/'+id+'">Данные организации</a>');
+}
+
+function viewOrg(id) {
+	var url = '/?mod=forms&action=vieworg';
+       $.get(
+           url,
+           "id=" + id,
+           function (data) {
+			$('#orginfo').html(data);
+            }
+       );
+}
+<? /* search org end */?>
+
+
+
+
+
+
+
 </script>
 
 <div style="position: absolute;border: solid #AAAAAA 1px;background-color: #DDDDDD;  
@@ -77,7 +107,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 <?
   $gk_id=$TPL['gk_id'];
   $d=$TPL['DATA'];
-  echo '<table style="font-size:10px;">';
+  echo '<table>';
   echo '<tr><td width="50%">';
   echo '<b>Конкурс:</b> извещение № '.$d['tender_notice_num'].' от '.$d['tender_notice_date'].'</td><td>
   <form action="" name="tender_form">
@@ -89,21 +119,25 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   echo '<tr><td>';
   if ($d['bid_cifer']=="null") $b_cifer="Не задано"; else $b_cifer=$d['bid_cifer'];
   echo '<b>Заявка:</b> шифр заявки - '.$b_cifer.'</td><td>
-  <form action="" name="bid_form">
-  <input type="hidden" name="gk_id" value="'.$gk_id.'">
-  <input type="submit" name="bidGK" value="Данные заявки">
+  <form action="/gk/'.$gk_id.'/data_bid/'.$d['b_id'].'">
+  <input type="submit" value="Данные заявки">
   </form>
   </td></tr>';
   
   echo '<tr><td>';
-  echo '<b>Организация:</b> '.$d['full_org_title'].'</td><td>
-  <form action="" name="org_form">
-  <input type="hidden" name="gk_id" value="'.$gk_id.'">
-  <input type="submit" name="org_search" value="Поиск">
-  <input type="submit" name="org" value="Данные организации">
-  </form>
+  echo '<b>Организация:</b> <span id="select_org">'.$d['full_org_title'].'</span></td><td>
+  <input type="button" value="Поиск" onclick="loadSearch()"><br />
+  <span id="data_org"><a href="/gk/'.$gk_id.'/gk/edit_organization/'.$data['org_id'].'">Данные организации</a></span>
   </td></tr>';
+  ?>
   
+  	<tr>
+		<td colspan="2">
+		<div id="search_org"></div>
+		</td>
+	</tr>
+  
+  <?
   echo '<tr><td colspan=2>';
   echo '<div onmouseover="tooltip(this,\'Номер мероприятия может быть отредактирован только в данных конкурса\')" onmouseout="hide_info(this)"><b>Мероприятие:</b> '.$d['measure_id'].' '.$d['measure_title'].'</div></td><td></td></tr>';
   
@@ -111,12 +145,13 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   echo '<div style="padding-bottom : 20px;" onmouseover="tooltip(this,\'Вид работ может быть отредактирован только в данных конкурса\')" onmouseout="hide_info(this)"><b>Статья расходов:</b> '.$d['work_kind_title'].'</div></td><td></td></tr>';
   
   echo '<form method="post">';
-  echo '<tr><td>Номер контракта</td><td>'.'<input style="font-size:9px;" type="text" name="number" size="10" value="'.$d['number'].'">'.'</td></tr>';
-  echo '<tr><td>Дата заключения</td><td>'.'<input style="font-size:9px;" type="text" name="signing_date" size="10" value="'.$d['signing_date'].'">'.'</td></tr>';
-  echo '<tr><td>Ставка НДС (%)</td><td>'.'<input style="font-size:9px;" type="text" name="VAT" size="10" value="'.$d['VAT'].'">'.'</td></tr>';
+  echo '<input type="hidden" value="'.$data['org_id'].'" name="id_org_ind" id="select_org_id" />';
+  echo '<tr><td>Номер контракта</td><td>'.'<input type="text" name="number" size="10" value="'.$d['number'].'">'.'</td></tr>';
+  echo '<tr><td>Дата заключения</td><td>'.'<input type="text" name="signing_date" size="10" value="'.$d['signing_date'].'">'.'</td></tr>';
+  echo '<tr><td>Ставка НДС (%)</td><td>'.'<input type="text" name="VAT" size="10" value="'.$d['VAT'].'">'.'</td></tr>';
   
   echo '<tr><td>Статус контракта</td><td>';
-  echo '<select size="1" name="status" style="font-size:9px;">';
+  echo '<select size="1" name="status">';
   foreach ($d['statuses'] as $st)
     {
       if ($st['id']!==$d['status']) echo '<option value="'.$st['id'].'">'.$st['title'].'</option>';
@@ -125,10 +160,10 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   echo '</select>';
   echo '</td></tr>';
   
-  echo '<tr><td>Наименование проекта</td><td>'.'<textarea style="font-size:9px;" name="work_title" rows="6">'.$d['work_title'].'</textarea>'.'</td></tr>';
-  echo '<tr><td>Руководитель проекта (ФИО полностью)</td><td>'.'<input style="font-size:9px;" type="text" name="work_director" size="10" value="'.$d['work_director'].'">'.'</td></tr>';
-  echo '<tr><td>Электронная почта для связи</td><td>'.'<input style="font-size:9px;" type="text" name="e_mail" size="10" value="'.$d['e_mail'].'">'.'</td></tr>';
-  echo '<tr><td>Телефон для связи</td><td>'.'<input style="font-size:9px;" type="text" name="phone" size="10" value="'.$d['phone'].'">'.'</td></tr>';
+  echo '<tr><td>Наименование проекта</td><td>'.'<textarea name="work_title" rows="6">'.$d['work_title'].'</textarea>'.'</td></tr>';
+  echo '<tr><td>Руководитель проекта (ФИО полностью)</td><td>'.'<input type="text" name="work_director" size="10" value="'.$d['work_director'].'">'.'</td></tr>';
+  echo '<tr><td>Электронная почта для связи</td><td>'.'<input type="text" name="e_mail" size="10" value="'.$d['e_mail'].'">'.'</td></tr>';
+  echo '<tr><td>Телефон для связи</td><td>'.'<input type="text" name="phone" size="10" value="'.$d['phone'].'">'.'</td></tr>';
   
   /* if ($d['number']!=="null") echo '<tr><td>Номер контракта</td><td>'.$d['number'].'</td></tr>';
   else echo '<tr><td>Номер контракта</td><td>Не задано</td></tr>';
@@ -150,7 +185,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 	
   // вывод этапов
   echo '<h3>Этапы</h3>';
-  echo '<div style="overflow: scroll;"><table style="font-size:9px;" border="1">';
+  echo '<div style="overflow: scroll;"><table border="1">';
   echo '<tr>';
   echo '<th>№ п/п</th>';
   echo '<th>Дата начала</th>';
@@ -164,6 +199,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   echo '</tr>';
   
   $steps=$d['steps'];
+  $summa=0;
   foreach ($steps as $step)
     {
 	  echo '<tr align="center">';
@@ -174,6 +210,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 	  echo '<td>'.change_data_format($step['finish_date']).'</td>';
 	  echo '<td>'.$step['plan_price'].'</td>';
 	  echo '<td>'.$step['price'].'</td>';
+	  $summa+=$step['price'];
 	  echo '<td>'.$step['prepayment_percent'].'</td>';
 	  if ($step['integration_date']!=='0000-00-00') echo '<td>'.change_data_format($step['integration_date']).'</td>';
 	  else echo '<td>Не задано</td>';
@@ -182,12 +219,14 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 	  Подробнее</td>';
 	  echo '</tr>'; 
 	}
-  
+  echo '<tr><td colspan="5" align="right">Итого:&nbsp;&nbsp;&nbsp;</td>
+  <td colspan="4">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$summa.'</td>
+  </tr>';
   echo '</table></div><div align="left"><a href="/gk/data_step/'.$gk_id.'/-1">Добавить этап</a></div>';
   
   // вывод платежных поручений
   echo '<h3>Платежные поручения</h3>';
-  echo '<div style="overflow: scroll;"><table style="font-size:9px;" border="1">';
+  echo '<div style="overflow: scroll;"><table border="1">';
   echo '<tr>';
   echo '<th>№ этапа</th>';
   echo '<th>№ плат. поручения</th>';

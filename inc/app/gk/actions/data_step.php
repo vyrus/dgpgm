@@ -30,7 +30,7 @@
         $row['act_file_link'] =  "null"; //???
         $row['GK_id'] = $_GET['GK_id'];
         $row['financing_act'] = $_POST['price']- $row['prepayment']; //Сумма этапа по ГК – Финансирование аванс
-        $sql = "UPDATE ".FK_STEPGK." SET number=".$row['number'].", start_date='".$row['start_date'].
+        $sql = sql_placeholder("UPDATE ".FK_STEPGK." SET number=".$row['number'].", start_date='".$row['start_date'].
         	"', finish_date='".$row['finish_date']."', presentation_date='".$row['presentation_date'].
             "', review_date='".$row['review_date']."', prepayment_date='".$row['prepayment_date'].
             "', act_financing_date='".$row['act_financing_date']."', integration_date='".$row['integration_date'].
@@ -38,7 +38,7 @@
             ", prepayment_percent=".$row['prepayment_percent'].", prepayment=".$row['prepayment'].
             ", act_number=".$row['act_number'].", act_reg_date='".$row['act_reg_date'].
             "', act_file_link=".$row['act_file_link'].", GK_id=".$row['GK_id'].
-            ", financing_act=".$row['financing_act']." WHERE id=".$row['id'];
+            ", financing_act=".$row['financing_act']." WHERE id=".$row['id']);
         if ($this->db->query($sql)) {
         	$res = "Запись успешно добавлена!";//echo "Record added successfully!";
         } else {

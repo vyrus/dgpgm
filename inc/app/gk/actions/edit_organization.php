@@ -17,7 +17,10 @@
 		}
 		if ($_GET['type'] == 'bid') {
 			$back = '/gk/'.$_GET['id_gk'].'/data_bid';
+		} elseif ($_GET['type'] == 'gk') {
+			$back = '/gk/gk/'.$_GET['id_gk'];
 		}
+		
 		$_TPL['BIDMENU']="";
 		
 		include TPL_CMS_GK."edit_organization.php";

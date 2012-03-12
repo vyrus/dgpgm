@@ -100,7 +100,7 @@ function viewOrg(id) {
 		<td colspan="2" style="text-align: center;"><br /><input type="submit" value="Сохранить данные заявки" ></td>
 	</tr>
 	<tr>
-		<td colspan="2" style="text-align: center;"><br /><a href="/gk/<?=$_GET['id']?>">Вернуться к редактированию Госконтракта №<?=$TPL['GK']['number']?></a></td>
+		<td colspan="2" style="text-align: center;"><br /><a href="/gk/gk/<?=$_GET['id']?>">Вернуться к редактированию Госконтракта №<?=$TPL['GK']['number']?></a></td>
 	</tr>
 </table>
 </form>

@@ -13,13 +13,13 @@
         $row['date'] = $date[2]."-".$date[1]."-".$date[0];
         $row['sum'] = $_POST['sum'];
         $row['status'] = $_POST['status'];
-        $sql = "SELECT DISTINCT id FROM "FK_STEPGK" WHERE GK_id='".$_GET['GK_id']."' AND number='".$_POST['stepGKnumber'].
-        	"' ORDER BY stepGK.id DESC";
+        $sql = sql_placeholder("SELECT DISTINCT id FROM ".FK_STEPGK." WHERE GK_id='".$_GET['GK_id']."' AND number='".$_POST['stepGKnumber'].
+        	"' ORDER BY id DESC");
         $q = $this->db->query($sql);
         $row['stepGK_id'] = mysql_result($q, 0, 0);
-        $sql = "UPDATE ".FK_PAYMENT_ORDER." SET number='".$row['number']."', type=".$row['type'].
+        $sql = sql_placeholder("UPDATE ".FK_PAYMENT_ORDER." SET number='".$row['number']."', type=".$row['type'].
         	", date='".$row['date']."', sum=".$row['sum'].", status=".$row['status'].", stepGK_id=".$row['stepGK_id'].
-        	" WHERE id=".$row['id'];
+        	" WHERE id=".$row['id']);
         if ($this->db->query($sql)) {
         	$res = "Запись успешно добавлена!";//echo "Record added successfully!";
         } else {

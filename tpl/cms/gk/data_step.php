@@ -12,7 +12,7 @@
     if (isset($_GET['step_id']) && isset($_GET['GK_id'])) {
     	$id = $_GET['step_id'];
     	if ($id == -1) {
-    		$sql = "SELECT MAX(id) FROM stepGK";
+    		$sql = sql_placeholder("SELECT MAX(id) FROM stepGK");
     		$r = mysql_fetch_assoc($this->db->query($sql));
     		$id = $r['MAX(id)']+1;
     		//$sql = "SELECT DISTINCT id FROM stepGK WHERE GK_id=".$_GET['GK_id'];
@@ -32,7 +32,7 @@
     		//	0, null, '0000-00-00', null, ".$_GET['GK_id'].", 0)";
     		//$q = $this->db->query($sql);
     	}
-    	$sql = "SELECT DISTINCT * FROM ".FK_STEPGK." WHERE id=".$id;//получить из формы редактирования ГК
+    	$sql = sql_placeholder("SELECT DISTINCT * FROM ".FK_STEPGK." WHERE id=".$id);//получить из формы редактирования ГК
         $rowDB = mysql_fetch_assoc($this->db->query($sql));
         //продолжение следует...
 ?>
@@ -138,10 +138,10 @@
     <input type="submit" name="s_data_step" value="Сохранить данные этапа" ><br /><br />
 
 <?
-    $sql = "SELECT DISTINCT number FROM ".FK_GK." WHERE id=".$_GET['GK_id'];//получить из формы редактирования ГК
+    $sql = sql_placeholder("SELECT DISTINCT number FROM ".FK_GK." WHERE id=".$_GET['GK_id']);//получить из формы редактирования ГК
     $q = $this->db->query($sql);
     $rowDB = mysql_fetch_assoc($q);
-    echo '<a href="/gk/gk/'.$_GET['GK_id'].'">Вернуться к редактированию Госконтракта №'.$rowDB['number'].'</a>'
+    echo '<a href="/gk/gk/'.$_GET['GK_id'].'">Вернуться к редактированию Госконтракта №'.$rowDB['number'].'</a>';
 ?>
 
     </center>

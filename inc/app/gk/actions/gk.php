@@ -15,29 +15,33 @@
 	if (isset($_REQUEST['id']))
 	  {
 	    $id = $_REQUEST['id'];
-		if ($_REQUEST['act']==1) $sql="delete from stepGK where id=$id";
-		elseif ($_REQUEST['act']==2) $sql="delete from payment_order where id=$id";
-		$this->db->query($sql);
+		if ($_REQUEST['act']==1) {
+			$sql=sql_placeholder("delete from ?#FK_PAYMENT_ORDER where stepGK_id=?", $id);
+			$this->db->query($sql);
+			$sql=sql_placeholder("delete from ?#FK_STEPGK where id=?", $id);
+			$this->db->query($sql);
+		} elseif ($_REQUEST['act']==2) {
+			$sql=sql_placeholder("delete from ?#FK_PAYMENT_ORDER where id=?", $id);
+			$this->db->query($sql);
+		}
 	  }
 	  
 	if (isset($_REQUEST['save']))
       {
-	    $number=$_REQUEST['number'];
-		$signing_date=change_data_format_revers($_REQUEST['signing_date']);
-		$VAT=$_REQUEST['VAT'];
-		$status=$_REQUEST['status'];
-		$work_title=$_REQUEST['work_title'];
-		$work_director=$_REQUEST['work_director'];
-		$e_mail=$_REQUEST['e_mail'];
-		$phone=$_REQUEST['phone'];
-		$sql="update GK 
-		set number='$number', signing_date='$signing_date', VAT='$VAT',
-		status_id=$status, work_title='$work_title', work_director='$work_director',
-		e_mail='$e_mail', phone='$phone'
-		where id=$gk_id
-		";
-		$this->db->query($sql);
-	  }
+	    $row['number']=$_REQUEST['number'];
+		$row['signing_date']=change_data_format_revers($_REQUEST['signing_date']);
+		$row['VAT']=$_REQUEST['VAT'];
+		$row['status_id']=$_REQUEST['status'];
+		$row['work_title']=$_REQUEST['work_title'];
+		$row['work_director']=$_REQUEST['work_director'];
+		$row['e_mail']=$_REQUEST['e_mail'];
+		$row['phone']=$_REQUEST['phone'];
+		$row['id_org_ind']=$_REQUEST['id_org_ind'];
+		$sql=sql_placeholder('update ?#FK_GK set ?% where id=? ', $row, $gk_id);
+		if ($this->db->query($sql)) {
+			$_TPL['ERROR'][] = 'Данные сохранены';
+		}
+	}
 	
 	$debug=true;
 	function pre($var) {
@@ -61,43 +65,39 @@
 	where GK.id=$gk_id AND GK.measure_id=m.id AND 
 	GK.bidGK_id=b.id AND b.lot_id=l.id AND l.tender_id=t.id";
 	$sql = sql_placeholder($sql);
-    $rows_1 = $this->db->_array_data($sql);
-	$r=$rows_1[0];
+    $r = $this->db->select_row($sql);
 	$data['measure_id']=$r['m_id'];
 	$data['measure_title']=$r['m_title'];
 	$data['tender_notice_num']=$r['n_num'];
 	$data['tender_notice_date']=change_data_format(substr($r['n_date'],0,11));
 	
 	// данные по организации
-	$sql="select org.full_title as f_title from applicant_organization org, GK 
+	$sql="select GK.id_org_ind as org_id, org.full_title as f_title from applicant_organization org, GK 
 		where GK.id=$gk_id AND GK.id_org_ind=org.id";
 	$sql = sql_placeholder($sql);
-    $rows_1 = $this->db->_array_data($sql);
-	$r=$rows_1[0];
+    $r = $this->db->select_row($sql);
 	$data['full_org_title']=$r['f_title'];
+	$data['org_id']=$r['org_id'];
 	
 	// данные по заявке
-	$sql="select b.cifer as bid_cifer from bidGK b, GK 
+	$sql="select b.id as b_id, b.cifer as bid_cifer from bidGK b, GK 
 		where GK.id=$gk_id AND GK.bidGK_id=b.id";
 	$sql = sql_placeholder($sql);
-    $rows_1 = $this->db->_array_data($sql);
-	$r=$rows_1[0];
+    $r = $this->db->select_row($sql);
 	$data['bid_cifer']=$r['bid_cifer'];
+	$data['b_id']=$r['b_id'];
 	
     // данные по статье расходов
-	$sql="select w.title as work_title from work_kind w, GK 
-		where GK.id=$gk_id AND GK.work_kind_id=w.id";
-	$sql = sql_placeholder($sql);
-    $rows_1 = $this->db->_array_data($sql);
-	$r=$rows_1[0];
-	$data['work_kind_title']=$r['work_title'];
+	$sql=sql_placeholder("select w.title as work_title from ?#FK_WORK_KIND w, ?#FK_GK 
+		where GK.id=? AND GK.work_kind_id=w.id", $gk_id);
+    $r = $this->db->select_row($sql);
+	$data['work_kind_title']=$r;
 	
 	// данные по самому госконтракту
 	$sql="select number, signing_date, VAT, status_id, work_title, work_director, e_mail, phone from GK, status 
 		where GK.id=$gk_id";
 	$sql = sql_placeholder($sql);
-    $rows_1 = $this->db->_array_data($sql);
-	$r=$rows_1[0];
+    $r = $this->db->select_row($sql);
 	$data['number']=$r['number'];
 	$data['signing_date']=change_data_format($r['signing_date']);
 	$data['VAT']=$r['VAT'];
@@ -107,23 +107,29 @@
 	if ($r['e_mail']=="null") $data['e_mail']=''; else $data['e_mail']=$r['e_mail'];
 	if ($r['phone']=="null") $data['phone']=''; else $data['phone']=$r['phone'];
 
-if ($debug) {
-        echo pre($sql);
-        echo pre($data);
-    }
-
-	
 	// получение данных по этапам госконтракта
-	$sql="select s.id as id, lp.price as plan_price, s.start_date as start_date,
-          s.presentation_date as presentation_date, s.finish_date as finish_date,
-		  s.price as price, s.prepayment_percent as prepayment_percent, 
-		  s.integration_date as integration_date, s.number as number
-	      from GK, stepGK s, bidGK b, lot l, lot_price lp 
-		  where GK.id=s.GK_id AND GK.id=$gk_id AND GK.bidGK_id=b.id AND b.lot_id=l.id 
-		  AND l.id=lp.lot_id AND lp.step_number=s.number
-		  ORDER BY s.number ASC";
-	$sql = sql_placeholder($sql);
+	$sql=sql_placeholder("select
+			s.id as id,
+			s.price as plan_price,
+			s.start_date as start_date,
+			s.presentation_date as presentation_date,
+			s.finish_date as finish_date,
+			s.price as price,
+			s.prepayment_percent as prepayment_percent,
+			s.integration_date as integration_date,
+			s.number as number
+		from
+			?#FK_GK GK, ?#FK_STEPGK s
+		where
+			GK.id=s.GK_id AND
+			GK.id=?
+		ORDER BY s.number ASC", $gk_id);
     $rows_1 = $this->db->_array_data($sql);
+	
+	if ($debug) {
+        echo pre($sql);
+        echo pre($rows_1);
+    }
 	
 	$data['steps']= array ();
 	foreach ($rows_1 as $r)

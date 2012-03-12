@@ -9,16 +9,16 @@
     //echo "_GET['payment_id']=".$_GET['payment_id']."<br />";
     //echo "_GET['GK_id']=".$_GET['GK_id']."<br />";
     if (isset($_GET['payment_id']) && isset($_GET['GK_id'])) {
-    	$id = $_GET['payment_id'];    	if ($id == -1) {    		$sql = "SELECT MAX(id) FROM ".FK_PAYMENT_ORDER;
+    	$id = $_GET['payment_id'];    	if ($id == -1) {    		$sql = sql_placeholder("SELECT MAX(id) FROM ".FK_PAYMENT_ORDER);
     		$r = mysql_fetch_assoc($this->db->query($sql));
     		$id = $r['MAX(id)']+1;
-    		$sql = "SELECT DISTINCT id FROM ".FK_STEPGK." WHERE GK_id=".$_GET['GK_id'];
+    		$sql = sql_placeholder("SELECT DISTINCT id FROM ".FK_STEPGK." WHERE GK_id=".$_GET['GK_id']);
     		$r = mysql_fetch_assoc($this->db->query($sql));
     		$stepGK_id = $r['id'];
     		$row = array("id"=>$id, "number"=>"0", "type"=>1, "date"=>"0000-00-00", "sum"=>0, "status"=>1, "stepGK_id"=>$stepGK_id);
             $this->db->addrow(FK_PAYMENT_ORDER, $row);    		//$sql = "INSERT INTO payment_order(id, number, type, date, sum, status, stepGK_id)
     		//	VALUES (".$id.", '0', 1, '0000-00-00', 0, 1, ".$stepGK_id.")";
-    		//$q = $this->db->query($sql);    	}    	$sql = "SELECT DISTINCT * FROM ".FK_PAYMENT_ORDER." WHERE id=".$id;//получить из формы редактирования ГК        $rowDB = mysql_fetch_assoc($this->db->query($sql));
+    		//$q = $this->db->query($sql);    	}    	$sql = sql_placeholder("SELECT DISTINCT * FROM ".FK_PAYMENT_ORDER." WHERE id=".$id);//получить из формы редактирования ГК        $rowDB = mysql_fetch_assoc($this->db->query($sql));
         //продолжение следует...
 ?>
 
@@ -39,7 +39,7 @@
     	<td style="width: 25%;">Номер этапа</td>
     	<td><select name="stepGKnumber">
     		<?
-            	$sql = "SELECT DISTINCT id,number FROM ".FK_STEPGK." WHERE GK_id=".$_GET['GK_id']." ORDER BY number ASC";//получить из формы редактирования ГК
+            	$sql = sql_placeholder("SELECT DISTINCT id,number FROM ".FK_STEPGK." WHERE GK_id=".$_GET['GK_id']." ORDER BY number ASC");//получить из формы редактирования ГК
         		$q = $this->db->query($sql);
         		while($r=mysql_fetch_assoc($q)){        			$selected = '';
                     if ($rowDB['stepGK_id'] == $r['id']) {$selected = 'SELECTED';}        			echo '<option value="'.$r['number'].'" '.$selected.'>'.$r['number'].'</option>';
@@ -86,7 +86,7 @@
     <input type="submit" name="s_data_payment_order" value="Сохранить данные поручения" ><br /><br />
 
 <?
-    $sql = "SELECT DISTINCT number FROM ".FK_GK." WHERE id=".$_GET['GK_id'];//получить из формы редактирования ГК
+    $sql = sql_placeholder("SELECT DISTINCT number FROM ".FK_GK." WHERE id=".$_GET['GK_id']);//получить из формы редактирования ГК
     $q = $this->db->query($sql);
     $rowDB = mysql_fetch_assoc($q);
     echo '<a href="/gk/gk/'.$_GET['GK_id'].'">Вернуться к редактированию Госконтракта №'.$rowDB['number'].'</a>';
