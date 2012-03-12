@@ -7,12 +7,12 @@
 			$_TPL['ERROR'] = $tmp['error'];
 			$_TPL['ROW'] = $tmp['data'];
 
-				if (!count($tmp['error'])){
+				//if (!count($tmp['error'])){
 					$sql=sql_placeholder('update ?#FK_APP_ORG set ?% where id=? ', $_TPL['ROW'], $_GET['id']);
 					$this->db->query($sql);
 					$_TPL['ERROR'][] = 'Данные сохранены.';
 					
-				}
+				//}
 		
 		}
 		if ($_GET['type'] == 'bid') {

@@ -87,7 +87,8 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   </td></tr>';	
   
   echo '<tr><td>';
-  echo '<b>Заявка:</b> шифр заявки - '.$d['bid_cifer'].'</td><td>
+  if ($d['bid_cifer']=="null") $b_cifer="Не задано"; else $b_cifer=$d['bid_cifer'];
+  echo '<b>Заявка:</b> шифр заявки - '.$b_cifer.'</td><td>
   <form action="" name="bid_form">
   <input type="hidden" name="gk_id" value="'.$gk_id.'">
   <input type="submit" name="bidGK" value="Данные заявки">
@@ -107,10 +108,29 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   echo '<div onmouseover="tooltip(this,\'Номер мероприятия может быть отредактирован только в данных конкурса\')" onmouseout="hide_info(this)"><b>Мероприятие:</b> '.$d['measure_id'].' '.$d['measure_title'].'</div></td><td></td></tr>';
   
   echo '<tr><td colspan=2>';
-  echo '<div style="padding-bottom : 20px;" onmouseover="tooltip(this,\'Вид работ может быть отредактирован только в данных конкурса\')" onmouseout="hide_info(this)"><b>Статья расходов:</b> '.$d['work_title'].'</div></td><td></td></tr>';
+  echo '<div style="padding-bottom : 20px;" onmouseover="tooltip(this,\'Вид работ может быть отредактирован только в данных конкурса\')" onmouseout="hide_info(this)"><b>Статья расходов:</b> '.$d['work_kind_title'].'</div></td><td></td></tr>';
   
   echo '<form method="post">';
-  if ($d['number']!=="null") echo '<tr><td>Номер контракта</td><td>'.$d['number'].'</td></tr>';
+  echo '<tr><td>Номер контракта</td><td>'.'<input style="font-size:9px;" type="text" name="number" size="10" value="'.$d['number'].'">'.'</td></tr>';
+  echo '<tr><td>Дата заключения</td><td>'.'<input style="font-size:9px;" type="text" name="signing_date" size="10" value="'.$d['signing_date'].'">'.'</td></tr>';
+  echo '<tr><td>Ставка НДС (%)</td><td>'.'<input style="font-size:9px;" type="text" name="VAT" size="10" value="'.$d['VAT'].'">'.'</td></tr>';
+  
+  echo '<tr><td>Статус контракта</td><td>';
+  echo '<select size="1" name="status" style="font-size:9px;">';
+  foreach ($d['statuses'] as $st)
+    {
+      if ($st['id']!==$d['status']) echo '<option value="'.$st['id'].'">'.$st['title'].'</option>';
+	  else echo '<option selected="selected" value="'.$st['id'].'">'.$st['title'].'</option>';
+    }
+  echo '</select>';
+  echo '</td></tr>';
+  
+  echo '<tr><td>Наименование проекта</td><td>'.'<textarea style="font-size:9px;" name="work_title" rows="6">'.$d['work_title'].'</textarea>'.'</td></tr>';
+  echo '<tr><td>Руководитель проекта (ФИО полностью)</td><td>'.'<input style="font-size:9px;" type="text" name="work_director" size="10" value="'.$d['work_director'].'">'.'</td></tr>';
+  echo '<tr><td>Электронная почта для связи</td><td>'.'<input style="font-size:9px;" type="text" name="e_mail" size="10" value="'.$d['e_mail'].'">'.'</td></tr>';
+  echo '<tr><td>Телефон для связи</td><td>'.'<input style="font-size:9px;" type="text" name="phone" size="10" value="'.$d['phone'].'">'.'</td></tr>';
+  
+  /* if ($d['number']!=="null") echo '<tr><td>Номер контракта</td><td>'.$d['number'].'</td></tr>';
   else echo '<tr><td>Номер контракта</td><td>Не задано</td></tr>';
   if ($d['signing_date']!=="null") echo '<tr><td>Дата заключения</td><td>'.$d['signing_date'].'</td></tr>';
   else echo '<tr><td>Дата заключения</td><td>Не задано</td></tr>';
@@ -125,7 +145,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   if ($d['e_mail']!=="null") echo '<tr><td>Электронная почта для связи</td><td>'.$d['e_mail'].'</td></tr>';
   else echo '<tr><td>Электронная почта для связи</td><td>Не задано</td></tr>';
   if ($d['phone']!=="null") echo '<tr><td>Телефон для связи</td><td>'.$d['phone'].'</td></tr>';
-  else echo '<tr><td>Телефон для связи</td><td>Не задано</td></tr>';
+  else echo '<tr><td>Телефон для связи</td><td>Не задано</td></tr>'; */
   echo '</table>';
 	
   // вывод этапов
@@ -148,18 +168,22 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
     {
 	  echo '<tr align="center">';
 	  echo '<td>'.$step['number'].'</td>';
-	  echo '<td>'.$step['start_date'].'</td>';
-	  echo '<td>'.$step['presentation_date'].'</td>';
-	  echo '<td>'.$step['finish_date'].'</td>';
+	  echo '<td>'.change_data_format($step['start_date']).'</td>';
+	  if ($step['presentation_date']!=='0000-00-00') echo '<td>'.change_data_format($step['presentation_date']).'</td>';
+	  else echo '<td>Не задано</td>';
+	  echo '<td>'.change_data_format($step['finish_date']).'</td>';
 	  echo '<td>'.$step['plan_price'].'</td>';
 	  echo '<td>'.$step['price'].'</td>';
 	  echo '<td>'.$step['prepayment_percent'].'</td>';
-	  echo '<td>'.$step['integration_date'].'</td>';
-	  echo '<td><a href="#">Ред.</a>/<a href="#">Удал.</a>/Подробнее</td>';
+	  if ($step['integration_date']!=='0000-00-00') echo '<td>'.change_data_format($step['integration_date']).'</td>';
+	  else echo '<td>Не задано</td>';
+	  echo '<td><a href="/gk/data_step/'.$gk_id.'/'.$step['id'].'">Ред.</a>/
+	  <a href="/gk/gk/'.$gk_id.'/'.$step['id'].'/1/">Удал.</a>/
+	  Подробнее</td>';
 	  echo '</tr>'; 
 	}
   
-  echo '</table></div><div align="right"><a href="#">Добавить этап</a></div>';
+  echo '</table></div><div align="left"><a href="/gk/data_step/'.$gk_id.'/-1">Добавить этап</a></div>';
   
   // вывод платежных поручений
   echo '<h3>Платежные поручения</h3>';
@@ -180,15 +204,17 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 	  echo '<tr align="center">';
 	  echo '<td>'.$payment['number'].'</td>';
 	  echo '<td>'.$payment['p_number'].'</td>';
-	  echo '<td>'.$payment['p_data'].'</td>';
+	  echo '<td>'.change_data_format($payment['p_data']).'</td>';
 	  echo '<td>'.$payment['p_type'].'</td>';
 	  echo '<td>'.$payment['p_sum'].'</td>';
 	  echo '<td>'.$payment['p_status'].'</td>';
-	  echo '<td><a href="#">Ред.</a>/<a href="#">Удал.</a>/Подробнее</td>';
+	  echo '<td><a href="/gk/data_payment_order/'.$gk_id.'/'.$payment['id'].'">Ред.</a>/
+	  <a href="/gk/gk/'.$gk_id.'/'.$payment['id'].'/2/">Удал.</a>/
+	  Подробнее</td>';
 	  echo '</tr>'; 
 	}
   
-  echo '</table></div><div align="right"><a href="#">Добавить поручение</a></div>'; 
+  echo '</table></div><div align="left"><a href="/gk/data_payment_order/'.$gk_id.'/-1">Добавить поручение</a></div>'; 
   
   echo '<input type="hidden" name="gk_id" value="'.$gk_id.'">
   <center><input type="submit" name="save" value="Сохранить данные контракта"></center>
