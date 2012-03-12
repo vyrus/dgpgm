@@ -65,7 +65,7 @@ function renderItemizationTable(data, container) {
                 	sum = sum / 1000;
                     sum = Math.round(sum * 100) / 100;
                 	
-                    return '<a href="">' + data.work_title + '</a><br />' +
+                    return '<a href="/gk/gk/' + data.id + '/">' + data.work_title + '</a><br />' +
                 	       'Cумма: ' + sum + ' тыс. руб.<br />' + 
                 	       'Платёжные поручения: ' + data.orders_amount;
                 }
@@ -132,7 +132,7 @@ function renderItemizationTable(data, container) {
         function getCellVal(inRowIndex) 
         {
         	var item = grid.getItem(inRowIndex);
-        	return {work_title: item.work_title, sum: item.sum, orders_amount: item.orders_amount};
+        	return {work_title: item.work_title, sum: item.sum, orders_amount: item.orders_amount, id:item.id};
         }
     });
 };

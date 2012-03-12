@@ -10,7 +10,8 @@ function selectOrg(id,title){
   $('#select_org').text(title);
   $('#select_org_id').val(id);
   $('#search_org').text('');
-  $('#data_org').html('<a href="/gk/<?=$_GET['id']?>/bid/edit_organization/'+id+'">Данные организации</a>');
+  //$('#data_org').html('<a href="/gk/<?=$_GET['id']?>/bid/edit_organization/'+id+'">Данные организации</a>');
+  $('#data_org').html('<a href="javascript:" onClick="saveFormRedirect()">Данные организации</a>');
 }
 
 function viewOrg(id) {
@@ -26,7 +27,9 @@ function viewOrg(id) {
 
 <? if (isset($_TPL['ROW']['id_org_ind']) && !empty($_TPL['ROW']['id_org_ind'])) { ?>
  $(document).ready(function () {
-	$('#data_org').html('<a href="/gk/<?=$_GET['id']?>/bid/edit_organization/<?=$_TPL['ROW']['id_org_ind']?>">Данные организации</a>');
+	//$('#data_org').html('<a href="/gk/<?=$_GET['id']?>/bid/edit_organization/<?=$_TPL['ROW']['id_org_ind']?>" target="_blank">Данные организации</a>');
+	$('#data_org').html('<a href="javascript:" onClick="saveFormRedirect()">Данные организации</a>');
+	
 	$('#select_org_id').val(<?=$_TPL['ROW']['id_org_ind']?>);
   });
   
@@ -41,6 +44,18 @@ function viewOrg(id) {
 	   
 <? } ?>
 
+function saveFormRedirect() {
+	$.post('<?=$_SERVER['REQUEST_URI']?>',  $("#bidForm").serialize(), function(result) {
+		if (!result) {
+			return false;
+		}
+	}, "json");
+	setTimeout('redirect()',1000);
+}
+
+function redirect() {
+	window.location.href = '/gk/<?=$_GET['id']?>/bid/edit_organization/<?=$_TPL['ROW']['id_org_ind']?>';
+}
 </script>
 
 
@@ -57,7 +72,7 @@ function viewOrg(id) {
 		</td>
 	</tr>
 </table>
-<form method="post">
+<form method="post" id="bidForm">
 <table style="width: 100%">
 	<tr>
 		<td style="width: 250px">Конкурс:</td>
@@ -100,7 +115,7 @@ function viewOrg(id) {
 		<td colspan="2" style="text-align: center;"><br /><input type="submit" value="Сохранить данные заявки" ></td>
 	</tr>
 	<tr>
-		<td colspan="2" style="text-align: center;"><br /><a href="/gk/<?=$_GET['id']?>">Вернуться к редактированию Госконтракта №<?=$TPL['GK']['number']?></a></td>
+		<td colspan="2" style="text-align: center;"><br /><a href="/gk/gk/<?=$_GET['id']?>">Вернуться к редактированию Госконтракта №<?=$TPL['GK']['number']?></a></td>
 	</tr>
 </table>
 </form>

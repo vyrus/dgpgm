@@ -1,28 +1,38 @@
 <?php
-if (isset($_POST['send'])) 
-{
-    /*chosen subprogram*/
-    $subProgram = $_POST['pp'];
-    if (empty($subProgram)) {$subProgram = "all";}
-
+    
+    if (!isset($_POST['send'])) 
+    {
+        $subProgram = 'all'; 
+        $measure = 'all'; 
+        $signingYear = '2011';
+        $measures = array();
+    }    
+    else
+    {
+        $subProgram = $_POST['pp'];
+        if (empty($subProgram)) {$subProgram = "all";}
+        else
+        {
+            $measures = $this->listMeasure($subProgram);
+        }
+    
+        $measure = $_POST['mr'];
+        if (empty($measure)) {$measure = "all";}
+    
+        $signingYear = $_POST['year'];
+        //if (empty($signingYear)) {$signingYear = "all";}   
+    }
+    
     if ($subProgram != 'all')
     {
         $sp_condition = 'and m.subprogram_id = '.$subProgram;
     }
-
-    /*chosen measure*/
-    $measure = $_POST['mr'];
-    if (empty($measure)) {$measure = "all";}
-
+    
     if ($measure != 'all')
     {
         $m_condition = 'and m.id = '.$measure;
     }
     
-    /*chosen year*/
-    $signingYear = $_POST['year'];
-    if (empty($signingYear)) {$signingYear = "all";}
-
     if ($signingYear != 'all')
     {
         $y_condition = 'and YEAR(gk.signing_date) = "'.$signingYear.'"';
@@ -32,7 +42,7 @@ if (isset($_POST['send']))
 		SELECT *
 		FROM
 		(
-		SELECT m.id mid, m.title, gk.id, gk.signing_date, gk.number, bgk.cifer, gk.work_title, gk.matching_organization, o.full_title 
+		SELECT m.id mid, m.title, gk.id, DATE_FORMAT(gk.signing_date, "%d.%m.%Y") signing_date, gk.number, bgk.cifer, gk.work_title, gk.matching_organization, o.full_title 
 		FROM `GK` gk, measure m, bidGK bgk, applicant_organization o  
 		WHERE m.id=gk.`measure_id` 
 		AND o.id=gk.id_org_ind
@@ -63,7 +73,7 @@ if (isset($_POST['send']))
 		
 		LEFT JOIN
 		(
-		SELECT MAX(sgk.finish_date) finish_date, gk.id gkid3
+		SELECT DATE_FORMAT(MAX(sgk.finish_date), "%d.%m.%Y") finish_date, gk.id gkid3
 		FROM stepGK sgk, GK gk  
 		WHERE sgk.GK_id=gk.id
 		GROUP BY gk.id
@@ -78,10 +88,14 @@ if (isset($_POST['send']))
     {
     	$TPL['DATA'] = json_encode($gk_data);    
     }
-}
-$TPL['SUBPROGRAM'] = $this->listSubprogram(); 
-$TPL["YEAR"]=listYears2('year', '2011', '2016', '2011');
-	
-include TPL_CMS_GK . 'itemization.php';
+
+    $TPL['SUBPROGRAM'] = $this->listSubprogram();
+    $TPL['MEASURES'] = $measures; 
+	$TPL["YEAR"]=listYears2('year', '2011', '2016', $signingYear);
+    $TPL['SELECTED_SUBPROGRAM'] = $subProgram;
+    $TPL['SELECTED_MEASURE'] = $measure;
+    
+    include TPL_CMS_GK . 'itemization.php';
+
 ?>
 
