@@ -79,6 +79,10 @@ class ManagerGk extends MysqlDB {
 				case($action == 'gk'):
 					include ACTIONS_GK."gk.php";
                 break;
+                
+				case($action == 'tender'):
+					include ACTIONS_GK."tender.php";
+                break;
 				
                 case($action=='get_mr'):
 					$pp_id = @intval($_GET['pp_id']);
