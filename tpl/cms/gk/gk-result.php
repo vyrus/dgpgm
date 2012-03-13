@@ -115,7 +115,6 @@ function confirmDelete()
     }
   }
 
-
 </script>
 
 <div style="position: absolute;border: solid #AAAAAA 1px;background-color: #DDDDDD;  
