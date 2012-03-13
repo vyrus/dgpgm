@@ -94,7 +94,7 @@
 	$data['work_kind_title']=$r;
 	
 	// данные по самому госконтракту
-	$sql="select number, signing_date, VAT, status_id, work_title, work_director, e_mail, phone from GK, status 
+	$sql="select number, matching_organization, signing_date, VAT, status_id, work_title, work_director, e_mail, phone from GK, status 
 		where GK.id=$gk_id";
 	$sql = sql_placeholder($sql);
     $r = $this->db->select_row($sql);
@@ -103,6 +103,7 @@
 	$data['VAT']=$r['VAT'];
 	$data['status']=$r['status_id'];
 	$data['work_title']=$r['work_title'];
+    $data['matching_organization']=$r['matching_organization'];	
 	if ($r['work_director']=="null") $data['work_director']=''; else $data['work_director']=$r['work_director'];
 	if ($r['e_mail']=="null") $data['e_mail']=''; else $data['e_mail']=$r['e_mail'];
 	if ($r['phone']=="null") $data['phone']=''; else $data['phone']=$r['phone'];
