@@ -2,52 +2,158 @@
 	$_TPL['TITLE'] [] = 'Государственные контракты';    
 	include TPL_CMS."_header.php";
 ?>
+<script>
+	//Load the Tooltip & Dialog widget class
+	dojo.require("dijit.Tooltip");
+	dojo.require("dijit.Dialog");
 
-	<h1>Данные конкурса</h1>
+	dojo.ready(function()
+	{
+		/*tooltips*/
+        measure_title = dojo.query("#measure_title");
+        var tip = new dijit.Tooltip({
+        	label: '<div class="myTipType">Мероприятие не может быть изменено после объявления конкурса</div>',
+            showDelay: 250,
+            connectId: measure_title
+        });
+        work_kind_title = dojo.query("#work_kind_title");
+        var tip = new dijit.Tooltip({
+        	label: '<div class="myTipType">Направление расходов не может быть изменено после объявления конкурса</div>',
+            showDelay: 250,
+            connectId: work_kind_title
+        });
+        
+        dijit.Tooltip.defaultPosition = ["above", "below", "before", "after"];        
+		/*eo tooltips*/
+
+		/*calendar*/
+	      Calendar.setup({
+	        inputField : "notice_date",
+	        trigger    : "notice_date_btn",
+	        onSelect   : function() { this.hide();},
+	        showTime   : 24,
+	        dateFormat : "%Y-%m-%d %H:%M:%S"
+	      });
+	      Calendar.setup({
+		        inputField : "envelope_opening_date",
+		        trigger    : "envelope_opening_date_btn",
+		        onSelect   : function() { this.hide() },
+		        showTime   : 24,
+		        dateFormat : "%Y-%m-%d %H:%M:%S"
+		      });
+	      Calendar.setup({
+		        inputField : "review_bid_date",
+		        trigger    : "review_bid_date_btn",
+		        onSelect   : function() { this.hide() },
+		        showTime   : 24,
+		        dateFormat : "%Y-%m-%d %H:%M:%S"
+		      });
+	      Calendar.setup({
+		        inputField : "estimation_date",
+		        trigger    : "estimation_date_btn",
+		        onSelect   : function() { this.hide() },
+		        showTime   : 24,
+		        dateFormat : "%Y-%m-%d %H:%M:%S"
+		      });
+	      Calendar.setup({
+		        inputField : "protocol_date",
+		        trigger    : "protocol_date_btn",
+		        onSelect   : function() { this.hide() },
+		        showTime   : 24,
+		        dateFormat : "%Y-%m-%d"
+		      });
+        /*eo calendar*/
+		})
+</script>
+
+<h1>Данные конкурса</h1>
 
 <form method="post">
-Мероприятие 
-<? if ($TPL['late']) {echo '<input type="hidden" name="measure_id" value='.$TPL['tender_data']['measure_id'].'>'.
-							$TPL['tender_data']['measure_id']." ".$TPL['tender_data']['mtitle'];} else {?>
-	<select name="measure_id" style="width:1030px"> <?
-		foreach ($TPL['measures'] as $m) {?> <option<?=$m['id'] == $TPL['tender_data']['measure_id'] ? ' selected' : ''?> value="<?=$m['id']?>"> <?=$m['id']." ".$m['title']?> </option> <? } ?>
-	</select> <?
-	}?> <br>
-
-Направление расходов
-<? if ($TPL['late']) {echo '<input type="hidden" name="work_kind_id" value='.$TPL['tender_data']['work_kind_id'].'>'.
-							$TPL['tender_data']['wktitle'];} else {?>
-	<select name="work_kind_id"> <?
-		foreach ($TPL['w_kinds'] as $wk) {?> <option<?=$wk['id'] == $TPL['tender_data']['work_kind_id'] ? ' selected' : ''?> value="<?=$wk['id']?>"> <?=$wk['title']?> </option> <? } ?>
-	</select> <?
-	}?> <br>
-
-Тип конкурса
-<?=$TPL['tender_data']['tktitle']?><br>
-
-№ извещения
-<input name="notice_num" value="<?=$TPL['tender_data']['notice_num']?>"><br>
-
-Дата извещения
-<input type="hidden" name="notice_date" value="<?=$TPL['tender_data']['notice_date']?>"><?=$TPL['tender_data']['notice_date']?><br>
-
-Название конкурса
-<input name="title" value="<?=$TPL['tender_data']['ttitle']?>"><br>
-
-Дата вскрытия конвертов
-<input type="hidden" name="envelope_opening_date" value="<?=$TPL['tender_data']['envelope_opening_date']?>"><?=$TPL['tender_data']['envelope_opening_date']?><br>
-
-Дата рассмотрения заявок
-<input type="hidden" name="review_bid_date" value="<?=$TPL['tender_data']['review_bid_date']?>"><?=$TPL['tender_data']['review_bid_date']?><br>
-
-Дата оценки и сопоставления
-<input type="hidden" name="estimation_date" value="<?=$TPL['tender_data']['estimation_date']?>"><?=$TPL['tender_data']['estimation_date']?><br>
-
-№ протокола
-<input name="protocol_number" value="<?=$TPL['tender_data']['protocol_number']?>"><br>
-
-Дата протокола
-<input type="hidden" name="protocol_date" value="<?=$TPL['tender_data']['protocol_date']?>"><?=$TPL['tender_data']['protocol_date']?><br>
+<table>
+	<tr>
+		<td style="width: 300px;">Мероприятие</td> 
+		<td> 
+			<? if ($TPL['late']) {echo '<input type="hidden" name="measure_id" value='.$TPL['tender_data']['measure_id'].'><span id="measure_title">'.
+									$TPL['tender_data']['measure_id']." ".$TPL['tender_data']['mtitle']."</span>";} else {?>
+			<select name="measure_id" style="width:630px"> <?
+				foreach ($TPL['measures'] as $m) {?> <option<?=$m['id'] == $TPL['tender_data']['measure_id'] ? ' selected' : ''?> value="<?=$m['id']?>"> <?=$m['id']." ".$m['title']?> </option> <? } ?>
+			</select> <?
+			}?> <br>
+		</td>
+	</tr>
+	<tr>
+		<td>Направление расходов</td>
+		<td>		
+			<? if ($TPL['late']) {echo '<input type="hidden" name="work_kind_id" value='.$TPL['tender_data']['work_kind_id'].'><span id="work_kind_title">'.
+									$TPL['tender_data']['wktitle']."</span>";} else {?>
+			<select name="work_kind_id"> <?
+				foreach ($TPL['w_kinds'] as $wk) {?> <option<?=$wk['id'] == $TPL['tender_data']['work_kind_id'] ? ' selected' : ''?> value="<?=$wk['id']?>"> <?=$wk['title']?> </option> <? } ?>
+			</select> <?
+			}?> <br>
+		</td>
+	</tr>
+	<tr>
+		<td>Тип конкурса</td>
+		<td>
+			<select name="tender_kind_id"> <?
+				foreach ($TPL['kinds'] as $tk) {?> <option<?=$tk['id'] == $TPL['tender_data']['tender_kind_id'] ? ' selected' : ''?> value="<?=$tk['id']?>"> <?=$tk['title']?> </option> <? } ?>
+			</select> <br>
+		</td>
+	</tr>
+	<tr>
+		<td>№ извещения</td>
+		<td>		
+			<input name="notice_num" value="<?=$TPL['tender_data']['notice_num']?>"><br>
+		</td>
+	</tr>
+	<tr>
+		<td>Дата извещения</td>
+		<td>		
+			<input type="text" id="notice_date" name="notice_date" value="<?=$TPL['tender_data']['notice_date']?>"  readonly="readonly">
+			<button id="notice_date_btn">...</button><br>
+		</td>
+	</tr>
+	<tr>
+		<td>Название конкурса</td>
+		<td>		
+			<input name="title" value="<?=$TPL['tender_data']['ttitle']?>"><br>
+		</td>
+	</tr>
+	<tr>
+		<td>Дата вскрытия конвертов</td>
+		<td>		
+			<input type="text" id="envelope_opening_date" name="envelope_opening_date" value="<?=$TPL['tender_data']['envelope_opening_date']?>"  readonly="readonly">
+			<button id="envelope_opening_date_btn">...</button><br>
+		</td>
+	</tr>
+	<tr>
+		<td>Дата рассмотрения заявок</td>
+		<td>		
+			<input type="text" id="review_bid_date" name="review_bid_date" value="<?=$TPL['tender_data']['review_bid_date']?>"  readonly="readonly">
+			<button id="review_bid_date_btn">...</button><br>
+		</td>
+	</tr>
+	<tr>
+		<td>Дата оценки и сопоставления</td>
+		<td>		
+			<input type="text" id="estimation_date" name="estimation_date" value="<?=$TPL['tender_data']['estimation_date']?>"  readonly="readonly">
+			<button id="estimation_date_btn">...</button><br>
+		</td>
+	</tr>
+	<tr>
+		<td>№ протокола</td>
+		<td>		
+			<input name="protocol_number" value="<?=$TPL['tender_data']['protocol_number']?>"><br>
+		</td>
+	</tr>
+	<tr>
+		<td>Дата протокола</td>
+		<td>		
+			<input type="text" id="protocol_date" name="protocol_date" value="<?=$TPL['tender_data']['protocol_date']?>" readonly="readonly">
+			<button id="protocol_date_btn">...</button><br>
+		</td>
+	</tr>
+</table>
 
 <style>
 	#lot-steps {
@@ -67,19 +173,11 @@
 		padding: 10px;
 	}
 	
+	.DynarchCalendar-title div
+	{
+		margin-left : 50px;
+	}
 </style>
-
-<script>
-/*calendar*/
-/*
-$(document).ready(function () {
-	$('input[name="handing_over_date"]').attachDatepicker({
-		rangeSelect: false,
-		yearRange: '2000:2050',
-		firstDay: 1
-	});
-})*/
-</script>
 
 <h3>Этапы</h3>
 <table id="lot-steps">

@@ -42,7 +42,12 @@ class ManagerGk extends MysqlDB {
 		return $this->db->_array_data($sql);
    }
    
-	
+	// Все мероприятия
+	function listAllMeasures(){
+		$sql=sql_placeholder('select * from ?#FK_MEASURE');
+		return $this->db->_array_data($sql);
+   }
+   
     function work(){
             global $_TPL;  
             $action = (empty($_GET['action'])?'':$_GET['action']);

@@ -112,7 +112,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   echo '<b>Конкурс:</b> извещение № '.$d['tender_notice_num'].' от '.$d['tender_notice_date'].'</td><td>
   <form action="" name="tender_form">
   <input type="hidden" name="gk_id" value="'.$gk_id.'">
-  <input type="submit" name="tender" value="Данные конкурса">
+  <input type="button" name="tender" value="Данные конкурса" onclick="location.href=\'/gk/tender/'.$gk_id.'\'">
   </form>
   </td></tr>';	
   

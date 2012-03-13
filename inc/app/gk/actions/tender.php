@@ -2,6 +2,17 @@
 	$gk = $_GET['gk_id'];
 	$TPL['gk_id'] = $gk;
 
+	$sql = sql_placeholder('
+		SELECT t.id
+		FROM `GK` gk, bidGK bgk,  lot l, tender t
+		WHERE gk.bidGK_id = bgk.id
+		AND bgk.lot_id = l.id
+		AND l.tender_id = t.id
+		AND gk.id='.$gk.'
+	');
+	$tender_id = $this->db->_array_data($sql);
+	$tender_id = $tender_id[0]['id'];
+
 	/*saving data*/
 	if ($_POST['send'])
 	{
@@ -9,6 +20,7 @@
 			UPDATE tender
 			SET measure_id = ?, 
 			work_kind_id = ?,
+			tender_kind_id = ?,
 			notice_num = ?,
 			notice_date = ?,
 			title = ?,
@@ -16,11 +28,12 @@
 			review_bid_date = ?,
 			estimation_date = ?,
 			protocol_number = ?,
-			protocol_date = ?',
-			$_POST['measure_id'], $_POST['work_kind_id'], $_POST['notice_num'],
+			protocol_date = ?
+			WHERE id = ?',
+			$_POST['measure_id'], $_POST['work_kind_id'], $_POST['tender_kind_id'], $_POST['notice_num'],
 			$_POST['notice_date'], $_POST['title'], $_POST['envelope_opening_date'], 
 			$_POST['review_bid_date'], $_POST['estimation_date'], $_POST['protocol_number'], 
-			$_POST['protocol_date']
+			$_POST['protocol_date'], $tender_id
 		);	
 		$this->db->query($sql);
 		
@@ -56,21 +69,11 @@
 	/*eo saving data*/
 	
 	$sql = sql_placeholder('
-		SELECT t.id
-		FROM `GK` gk, bidGK bgk,  lot l, tender t
-		WHERE gk.bidGK_id = bgk.id
-		AND bgk.lot_id = l.id
-		AND l.tender_id = t.id
-		AND gk.id='.$gk.'
-	');
-	$tender_id = $this->db->_array_data($sql);
-	$tender_id = $tender_id[0]['id'];
-    $sql = sql_placeholder('
 		SELECT sp.id spid, t.measure_id,t.title ttitle,t.notice_date, 
 			   m.title mtitle, tk.title tktitle, wk.title wktitle, 
 			   t.envelope_opening_date, t.review_bid_date,
 			   t.estimation_date, t.protocol_number,
-			   t.protocol_date, t.notice_num, t.work_kind_id
+			   t.protocol_date, t.notice_num, t.work_kind_id, t.tender_kind_id
 		FROM `tender` t, measure m, tender_kind tk, work_kind wk, subprogram sp
 		WHERE t.id = '.$tender_id.'
 		AND m.id = t.measure_id
@@ -78,15 +81,21 @@
 		AND wk.id = t.work_kind_id 
 		AND sp.id = m.subprogram_id
 	');
-
 	$tender_data = $this->db->_array_data($sql);
 	$TPL['tender_data'] = $tender_data[0];
 
-	$TPL['late'] = !isset($tender_data[0]['notice_date']) || ($tender_data[0]['notice_date'] > date('Y-m-d'));
+	$sql = sql_placeholder('
+		SELECT `title`,`id` FROM `tender_kind`
+	');
+	$kinds = $this->db->_array_data($sql);
+	$TPL['kinds'] = $kinds;
+		
+	$notice_date_time = explode(" ",$tender_data[0]['notice_date']);
+	$TPL['late'] = isset($tender_data[0]['notice_date']) && ($notice_date_time[0] <= date('Y-m-d'));
+
 	if (!$TPL['late'])
 	{
-		$pp_id = $tender_data[0]['spid']; 
-		$measures = $this->listMeasure($pp_id);
+		$measures = $this->listAllMeasures();
 		$TPL['measures'] = $measures;
 
 		$sql = sql_placeholder('
