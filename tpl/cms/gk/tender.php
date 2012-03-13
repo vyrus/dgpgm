@@ -2,10 +2,41 @@
 	$_TPL['TITLE'] [] = 'Государственные контракты';    
 	include TPL_CMS."_header.php";
 ?>
+
+<style>
+    #lot-steps {
+        border: 1px solid #000;
+        border-collapse: collapse;
+        font-size: 11px;
+        
+    }
+    
+    #lot-steps td {
+        border: 1px solid #000;
+        padding: 5px;
+    }
+
+    #lot-steps th {
+        border: 1px solid #000;
+        padding: 10px;
+    }
+    
+    .step-number {
+        width: 30px !important;
+        border: none !important;
+    }
+    
+    .step-price  {
+        width: 70px !important;
+    }
+    
+</style>
+
 <script>
 	//Load the Tooltip & Dialog widget class
 	dojo.require("dijit.Tooltip");
 	dojo.require("dijit.Dialog");
+    dojo.require("dojo.NodeList-traverse");
 
 	dojo.ready(function()
 	{
@@ -28,7 +59,47 @@
 
 		/*calendar*/
         /*eo calendar*/
-		})
+	});
+    
+    function list_years(start, end) {
+        var html = '';
+        for (var i = start; i <= end; i++) {
+            html += '<option value="' + i + '">' + i + '</option>';
+        }
+        return html;
+    }
+    
+    function add_step() {
+        var tr = 
+        '<tr>' + 
+            '<td><input type="text" class="step-number" name="step_number[]" value="" disabled /></td>' +
+            '<td>' +
+                '<select class="step-year" name="year[]">' +
+                    list_years(2011, 2016) +
+                '</select>' +
+            '</td>' +
+            '<td><input type="text" class="step-price" name="price[]" value="0" /></td>' +
+            '<td><a href="#" onclick="delete_step(this); return false;">Удалить</a></td>' +
+        '</tr>';
+        
+        var steps = dojo.query('#lot-steps tr:not([class="pass"])');
+        var after_node = (steps.length > 0 ? steps.last() : dojo.query('#lot-steps tr').first());
+        console.info('Adding new step after: ', after_node[0]);
+        
+        dojo.create('tr', {innerHTML: tr}, after_node[0], 'after');
+        reenumerate_steps();
+    }
+    
+    function delete_step(action_link) {
+        dojo.destroy(action_link.parentNode.parentNode);
+        reenumerate_steps();
+    }
+    
+    function reenumerate_steps() {
+        dojo.query('#lot-steps input.step-number').forEach(function(node, index) {
+            dojo.attr(node, 'value', index + 1); 
+        });
+    }
 </script>
 
 <h1>Данные конкурса</h1>
@@ -115,29 +186,9 @@
 	</tr>
 </table>
 
-<style>
-	#lot-steps {
-		border: 1px solid #000;
-		border-collapse: collapse;
-		font-size: 11px;
-		
-	}
-	
-	#lot-steps td {
-		border: 1px solid #000;
-		padding: 5px;
-	}
-
-	#lot-steps th {
-		border: 1px solid #000;
-		padding: 10px;
-	}
-	
-</style>
-
 <h3>Этапы</h3>
 <table id="lot-steps">
-	<tr>
+	<tr class="pass">
 		<th>№ п/п</th>
 		<th>Год</th>
 		<th>Цена план, руб.</th>
@@ -146,16 +197,19 @@
 	
 <? foreach ($TPL['step_data'] as $s) { ?>
 	<tr>
-		<td><input type="hidden" name="step_number[]" value="<?=$s['step_number']?>"><?=$s['step_number']?></td>
-		<td><input type="hidden" name="year[]" value="<?=$s['year']?>"><?=$s['year']?></td>
-		<td><input type="hidden" name="price[]" value="<?=$s['price']?>"><?=$s['price']?></td>
-		<td><a href="#" onclick="dojo.destroy(this.parentNode.parentNode);">Удалить</a></td>
+		<td><input type="text" class="step-number" name="step_number[]" value="<?=$s['step_number']?>" disabled /></td>
+		<td><?=listYears2('year[]', 2011, 2016, $s['year'])?></td>
+		<td><input type="text" class="step-price" name="price[]" value="<?=$s['price']?>" /></td>
+		<td><a href="#" onclick="delete_step(this); return false;">Удалить</a></td>
 	</tr>
 <? } ?>
-	<tr><td colspan="4" style="text-align: right"><a href="#" onclick="javascript: alert('New step');">Добавить этап</a></td>
+	<tr class="pass">
+        <td colspan="4" style="text-align: right;">
+            <a href="#" onclick="add_step(); return false;">Добавить этап</a>
+        </td>
 	</tr>
 </table>
-
+<br />
 
 <input type="button" value="Вернуться" onclick="location.href='/gk/gk/<?=$TPL['gk_id']?>'">
 <input type="submit" name="send" value="Сохранить данные конкурса">

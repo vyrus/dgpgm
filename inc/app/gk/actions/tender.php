@@ -54,16 +54,19 @@
 		$rows = array();
 		$step_number = 1;
 		
-		foreach ($_POST['year'] as $y)
-		{
-			$rows[$step_number]['price'] = $_POST['price'][$step_number-1];
-			$rows[$step_number]['year'] = $_POST['year'][$step_number-1];
-			$rows[$step_number]['step_number'] = $step_number;
-			$rows[$step_number]['lot_id'] = $lot_id[0]['id'];
+        if (!empty($_POST['year']))
+        {
+		    foreach ($_POST['year'] as $y)
+		    {
+			    $rows[$step_number]['price'] = $_POST['price'][$step_number-1];
+			    $rows[$step_number]['year'] = $_POST['year'][$step_number-1];
+			    $rows[$step_number]['step_number'] = $step_number;
+			    $rows[$step_number]['lot_id'] = $lot_id[0]['id'];
 
-			$this->db->addrow("lot_price", $rows[$step_number]);
-			$step_number++;			
-		}
+			    $this->db->addrow("lot_price", $rows[$step_number]);
+			    $step_number++;			
+		    }
+        }
 
 	}
 	/*eo saving data*/
@@ -117,6 +120,6 @@
 
 	$step_data = $this->db->_array_data($sql);
 	$TPL['step_data'] = $step_data; 
-
+    
     include TPL_CMS_GK . 'tender.php';
 ?>	
