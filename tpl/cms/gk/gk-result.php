@@ -75,7 +75,8 @@ function selectOrg(id,title){
   $('#select_org').text(title);
   $('#select_org_id').val(id);
   $('#search_org').text('');
-  $('#data_org').html('<a href="/gk/<?=$gk_id?>/gk/edit_organization/'+id+'">Данные организации</a>');
+  //$('#data_org').html('<a href="/gk/<?=$gk_id?>/gk/edit_organization/'+id+'" target="_blank">Данные организации</a>');
+  $('#data_org').html('<a href="javascript:" onClick="saveFormRedirect()">Данные организации</a>');
 }
 
 function viewOrg(id) {
@@ -88,12 +89,31 @@ function viewOrg(id) {
             }
        );
 }
+
+function saveFormRedirect() {
+	$.post('<?=$_SERVER['REQUEST_URI']?>',  $("#gkForm").serialize(), function(result) {
+		if (!result) {
+			return false;
+		}
+	}, "json");
+	
+//	setTimeout('redirect()',1000);
+}
+
+function redirect() {
+	window.location.href = '/gk/<?=$gk_id?>/gk/edit_organization/<?=$data['org_id']?>';
+}
 <? /* search org end */?>
 
 
-
-
-
+function confirmDelete() 
+  {
+    if (confirm("Вы подтверждаете удаление?")) {
+        return true;
+    } else {
+        return false;
+    }
+  }
 
 
 </script>
@@ -112,7 +132,8 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   echo '<b>Конкурс:</b> извещение № '.$d['tender_notice_num'].' от '.$d['tender_notice_date'].'</td><td>
   <form action="" name="tender_form">
   <input type="hidden" name="gk_id" value="'.$gk_id.'">
-  <input type="button" name="tender" value="Данные конкурса" onclick="location.href=\'/gk/tender/'.$gk_id.'\'">
+  <input type="button" name="tender" value="Данные конкурса" 
+  onclick="saveFormRedirect();setTimeout(function() {window.location.href = \'/gk/tender/'.$gk_id.'\';},1000);">
   </form>
   </td></tr>';	
   
@@ -120,14 +141,16 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   if ($d['bid_cifer']=="null") $b_cifer="Не задано"; else $b_cifer=$d['bid_cifer'];
   echo '<b>Заявка:</b> шифр заявки - '.$b_cifer.'</td><td>
   <form action="/gk/'.$gk_id.'/data_bid/'.$d['b_id'].'">
-  <input type="submit" value="Данные заявки">
+  <input type="button" 
+  onclick="saveFormRedirect();setTimeout(function() {window.location.href = \'/gk/'.$gk_id.'/data_bid/'.$d['b_id'].'\';},1000);" value="Данные заявки">
   </form>
   </td></tr>';
   
   echo '<tr><td>';
   echo '<b>Организация:</b> <span id="select_org">'.$d['full_org_title'].'</span></td><td>
   <input type="button" value="Поиск" onclick="loadSearch()"><br />
-  <span id="data_org"><a href="/gk/'.$gk_id.'/gk/edit_organization/'.$data['org_id'].'">Данные организации</a></span>
+  <span id="data_org"><a href="javascript:" 
+  onClick="saveFormRedirect();setTimeout(function() {window.location.href = \'/gk/'.$gk_id.'/gk/edit_organization/'.$data['org_id'].'\';},1000);">Данные организации</a></span>
   </td></tr>';
   ?>
   
@@ -144,7 +167,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   echo '<tr><td colspan=2>';
   echo '<div style="padding-bottom : 20px;" onmouseover="tooltip(this,\'Вид работ может быть отредактирован только в данных конкурса\')" onmouseout="hide_info(this)"><b>Статья расходов:</b> '.$d['work_kind_title'].'</div></td><td></td></tr>';
   
-  echo '<form method="post">';
+  echo '<form method="post" id="gkForm">';
   echo '<input type="hidden" value="'.$data['org_id'].'" name="id_org_ind" id="select_org_id" />';
   echo '<tr><td>Номер контракта</td><td>'.'<input type="text" name="number" size="10" value="'.$d['number'].'">'.'</td></tr>';
   echo '<tr><td>Дата заключения</td><td>'.'<input type="text" name="signing_date" size="10" value="'.$d['signing_date'].'">'.'</td></tr>';
@@ -164,6 +187,8 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   echo '<tr><td>Руководитель проекта (ФИО полностью)</td><td>'.'<input type="text" name="work_director" size="10" value="'.$d['work_director'].'">'.'</td></tr>';
   echo '<tr><td>Электронная почта для связи</td><td>'.'<input type="text" name="e_mail" size="10" value="'.$d['e_mail'].'">'.'</td></tr>';
   echo '<tr><td>Телефон для связи</td><td>'.'<input type="text" name="phone" size="10" value="'.$d['phone'].'">'.'</td></tr>';
+  echo '<tr><td>Согласующая организация</td><td>'.'<input type="text" name="matching_organization" size="10" value="'.$d['matching_organization'].'">'.'</td></tr>';
+  echo '<input type="hidden" name="save" value="1">';
   
   /* if ($d['number']!=="null") echo '<tr><td>Номер контракта</td><td>'.$d['number'].'</td></tr>';
   else echo '<tr><td>Номер контракта</td><td>Не задано</td></tr>';
@@ -214,15 +239,18 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 	  echo '<td>'.$step['prepayment_percent'].'</td>';
 	  if ($step['integration_date']!=='0000-00-00') echo '<td>'.change_data_format($step['integration_date']).'</td>';
 	  else echo '<td>Не задано</td>';
-	  echo '<td><a href="/gk/data_step/'.$gk_id.'/'.$step['id'].'">Ред.</a>/
-	  <a href="/gk/gk/'.$gk_id.'/'.$step['id'].'/1/">Удал.</a>/
+	  echo '<td><a href="javascript:"
+	  onClick="saveFormRedirect();setTimeout(function() {window.location.href = \'/gk/data_step/'.$gk_id.'/'.$step['id'].'\';},1000);">Ред.</a>/
+	  <a href="javascript:"
+	  onClick="res=confirmDelete();if (res) {saveFormRedirect();setTimeout(function() {window.location.href = \'/gk/gk/'.$gk_id.'/'.$step['id'].'/1/\';},1000);}">Удал.</a>/
 	  Подробнее</td>';
 	  echo '</tr>'; 
 	}
   echo '<tr><td colspan="5" align="right">Итого:&nbsp;&nbsp;&nbsp;</td>
   <td colspan="4">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$summa.'</td>
   </tr>';
-  echo '</table></div><div align="left"><a href="/gk/data_step/'.$gk_id.'/-1">Добавить этап</a></div>';
+  echo '</table></div><div align="left"><a href="javascript:"
+	  onClick="saveFormRedirect();setTimeout(function() {window.location.href = \'/gk/data_step/'.$gk_id.'/-1\';},1000);">Добавить этап</a></div>';
   
   // вывод платежных поручений
   echo '<h3>Платежные поручения</h3>';
@@ -247,13 +275,15 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 	  echo '<td>'.$payment['p_type'].'</td>';
 	  echo '<td>'.$payment['p_sum'].'</td>';
 	  echo '<td>'.$payment['p_status'].'</td>';
-	  echo '<td><a href="/gk/data_payment_order/'.$gk_id.'/'.$payment['id'].'">Ред.</a>/
-	  <a href="/gk/gk/'.$gk_id.'/'.$payment['id'].'/2/">Удал.</a>/
+	  echo '<td><a href="javascript:"
+	  onClick="saveFormRedirect();setTimeout(function() {window.location.href = \'/gk/data_payment_order/'.$gk_id.'/'.$payment['id'].'\';},1000);">Ред.</a>/
+	  <a href="javascript:"
+	  onClick="res=confirmDelete();if (res) {saveFormRedirect();setTimeout(function() {window.location.href = \'/gk/gk/'.$gk_id.'/'.$payment['id'].'/2/\';},1000);}">Удал.</a>/
 	  Подробнее</td>';
 	  echo '</tr>'; 
 	}
-  
-  echo '</table></div><div align="left"><a href="/gk/data_payment_order/'.$gk_id.'/-1">Добавить поручение</a></div>'; 
+  echo '</table></div><div align="left"><a href="javascript:"
+	    onClick="saveFormRedirect();setTimeout(function() {window.location.href = \'/gk/data_payment_order/'.$gk_id.'/-1\';},1000);">Добавить платежное поручение</a></div>'; 
   
   echo '<input type="hidden" name="gk_id" value="'.$gk_id.'">
   <center><input type="submit" name="save" value="Сохранить данные контракта"></center>
