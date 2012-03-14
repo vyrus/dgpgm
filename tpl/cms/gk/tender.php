@@ -68,35 +68,35 @@
 	        trigger    : "notice_date_btn",
 	        onSelect   : function() { this.hide();},
 	        showTime   : 24,
-	        dateFormat : "%Y-%m-%d %H:%M:%S"
+	        dateFormat : "%d.%m.%Y %H:%M"
 	      });
 	      Calendar.setup({
 	        inputField : "envelope_opening_date",
 	        trigger    : "envelope_opening_date_btn",
 	        onSelect   : function() { this.hide() },
 	        showTime   : 24,
-	        dateFormat : "%Y-%m-%d %H:%M:%S"
+	        dateFormat : "%d.%m.%Y %H:%M"
 	      });
 	      Calendar.setup({
 		        inputField : "review_bid_date",
 		        trigger    : "review_bid_date_btn",
 		        onSelect   : function() { this.hide() },
 		        showTime   : 24,
-		        dateFormat : "%Y-%m-%d %H:%M:%S"
+		        dateFormat : "%d.%m.%Y %H:%M"
 	      });
 	      Calendar.setup({
 		        inputField : "estimation_date",
 		        trigger    : "estimation_date_btn",
 		        onSelect   : function() { this.hide() },
 		        showTime   : 24,
-		        dateFormat : "%Y-%m-%d %H:%M:%S"
+		        dateFormat : "%d.%m.%Y %H:%M"
 	      });
 	      Calendar.setup({
 		        inputField : "protocol_date",
 		        trigger    : "protocol_date_btn",
 		        onSelect   : function() { this.hide() },
 		        showTime   : 24,
-		        dateFormat : "%Y-%m-%d"
+		        dateFormat : "%d.%m.%Y"
 	      });
         /*eo calendar*/
 	});

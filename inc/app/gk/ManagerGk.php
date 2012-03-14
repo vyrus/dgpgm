@@ -48,6 +48,16 @@ class ManagerGk extends MysqlDB {
 		return $this->db->_array_data($sql);
    }
    
+   function rightToWrongDateFormat($right_format_date)
+   {
+		$date_time = explode(" ", $right_format_date);
+		$new_t = $date_time[1].":00";
+		$d = explode(".",$date_time[0]);
+		$new_d = implode("-", array($d[2],$d[1],$d[0]));
+		$new_date_time = $new_d." ".$new_t;
+		return $new_date_time;
+   } 
+   
     function work(){
             global $_TPL;  
             $action = (empty($_GET['action'])?'':$_GET['action']);

@@ -31,9 +31,9 @@
 			protocol_date = ?
 			WHERE id = ?',
 			$_POST['measure_id'], $_POST['work_kind_id'], $_POST['tender_kind_id'], $_POST['notice_num'],
-			$_POST['notice_date'], $_POST['title'], $_POST['envelope_opening_date'], 
-			$_POST['review_bid_date'], $_POST['estimation_date'], $_POST['protocol_number'], 
-			$_POST['protocol_date'], $tender_id
+			$this->rightToWrongDateFormat($_POST['notice_date']), $_POST['title'], $this->rightToWrongDateFormat($_POST['envelope_opening_date']), 
+			$this->rightToWrongDateFormat($_POST['review_bid_date']), $this->rightToWrongDateFormat($_POST['estimation_date']), $_POST['protocol_number'], 
+			$this->rightToWrongDateFormat($_POST['protocol_date']), $tender_id
 		);	
 		$this->db->query($sql);
 		
@@ -71,11 +71,11 @@
 	/*eo saving data*/
 	
 	$sql = sql_placeholder('
-		SELECT sp.id spid, t.measure_id,t.title ttitle,t.notice_date, 
+		SELECT sp.id spid, t.measure_id, t.title ttitle,  DATE_FORMAT(t.notice_date, "%d.%m.%Y %H:%i") notice_date, 
 			   m.title mtitle, tk.title tktitle, wk.title wktitle, 
-			   t.envelope_opening_date, t.review_bid_date,
-			   t.estimation_date, t.protocol_number,
-			   t.protocol_date, t.notice_num, t.work_kind_id, t.tender_kind_id
+			   DATE_FORMAT(t.envelope_opening_date, "%d.%m.%Y %H:%i") envelope_opening_date, DATE_FORMAT(t.review_bid_date, "%d.%m.%Y %H:%i") review_bid_date, 
+			   DATE_FORMAT(t.estimation_date, "%d.%m.%Y %H:%i") estimation_date, t.protocol_number,
+			   DATE_FORMAT(t.protocol_date, "%d.%m.%Y") protocol_date, t.notice_num, t.work_kind_id, t.tender_kind_id
 		FROM `tender` t, measure m, tender_kind tk, work_kind wk, subprogram sp
 		WHERE t.id = '.$tender_id.'
 		AND m.id = t.measure_id
@@ -83,9 +83,10 @@
 		AND wk.id = t.work_kind_id 
 		AND sp.id = m.subprogram_id
 	');
+print_r($sql);
 	$tender_data = $this->db->_array_data($sql);
 	$TPL['tender_data'] = $tender_data[0];
-
+print_r($tender_data);
 	$sql = sql_placeholder('
 		SELECT `title`,`id` FROM `tender_kind`
 	');
