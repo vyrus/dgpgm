@@ -21,9 +21,9 @@
         	", date='".$row['date']."', sum=".$row['sum'].", status=".$row['status'].", stepGK_id=".$row['stepGK_id'].
         	" WHERE id=".$row['id']);
         if ($this->db->query($sql)) {
-        	$res = "Запись успешно добавлена!";//echo "Record added successfully!";
+        	$_TPL['ERROR'][] = "Запись успешно добавлена!";//echo "Record added successfully!";
         } else {
-        	$res = "Ошибка записи данных!";//echo "Error writing data!";
+        	$_TPL['ERROR'][] = "Ошибка записи данных!";//echo "Error writing data!";
         }
 
 		//mysql_select_db("dgpgm");//_kamenev_temp");

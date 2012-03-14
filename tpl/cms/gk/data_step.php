@@ -11,6 +11,7 @@
 
     if (isset($_GET['step_id']) && isset($_GET['GK_id'])) {
     	$id = $_GET['step_id'];
+    	//если добавляется новый этап, то вставляем пустую строку с новым идентификатором и заполненным идентификатором ГК
     	if ($id == -1) {
     		$sql = sql_placeholder("SELECT MAX(id) FROM stepGK");
     		$r = mysql_fetch_assoc($this->db->query($sql));

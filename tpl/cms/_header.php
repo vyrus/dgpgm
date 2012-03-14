@@ -21,6 +21,13 @@
 <script src="/files/js/cal.js"></script>
 <!-- use the "claro" theme -->
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dijit/themes/claro/claro.css">
+
+<!-- Временный календарь с выбором времени. Как будет время - заменить.  -->
+	<link rel="stylesheet" type="text/css" href="/files/calendar/css/jscal2.css" />
+    <link rel="stylesheet" type="text/css" href="/files/calendar/css/border-radius.css" />
+    <script type="text/javascript" src="/files/calendar/js/jscal2.js"></script>
+    <script type="text/javascript" src="/files/calendar/js/lang/ru.js"></script>
+    
 <script>
   $(document).ready(function(){
 
