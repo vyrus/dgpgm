@@ -9,7 +9,8 @@
     //echo "_GET['payment_id']=".$_GET['payment_id']."<br />";
     //echo "_GET['GK_id']=".$_GET['GK_id']."<br />";
     if (isset($_GET['payment_id']) && isset($_GET['GK_id'])) {
-    	$id = $_GET['payment_id'];    	if ($id == -1) {    		$sql = sql_placeholder("SELECT MAX(id) FROM ".FK_PAYMENT_ORDER);
+    	$id = $_GET['payment_id'];
+    	//если добавляется новый этап, то вставляем пустую строку с новым идентификатором и заполненным идентификатором ГК    	if ($id == -1) {    		$sql = sql_placeholder("SELECT MAX(id) FROM ".FK_PAYMENT_ORDER);
     		$r = mysql_fetch_assoc($this->db->query($sql));
     		$id = $r['MAX(id)']+1;
     		$sql = sql_placeholder("SELECT DISTINCT id FROM ".FK_STEPGK." WHERE GK_id=".$_GET['GK_id']);
@@ -39,6 +40,7 @@
     	<td style="width: 25%;">Номер этапа</td>
     	<td><select name="stepGKnumber">
     		<?
+    			//определяем номера всех этапов по идентификатору ГК и формируем из них раскрывающийся список
             	$sql = sql_placeholder("SELECT DISTINCT id,number FROM ".FK_STEPGK." WHERE GK_id=".$_GET['GK_id']." ORDER BY number ASC");//получить из формы редактирования ГК
         		$q = $this->db->query($sql);
         		while($r=mysql_fetch_assoc($q)){        			$selected = '';

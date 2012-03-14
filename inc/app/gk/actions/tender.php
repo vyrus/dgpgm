@@ -83,10 +83,8 @@
 		AND wk.id = t.work_kind_id 
 		AND sp.id = m.subprogram_id
 	');
-print_r($sql);
 	$tender_data = $this->db->_array_data($sql);
 	$TPL['tender_data'] = $tender_data[0];
-print_r($tender_data);
 	$sql = sql_placeholder('
 		SELECT `title`,`id` FROM `tender_kind`
 	');

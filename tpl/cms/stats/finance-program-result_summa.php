@@ -4,7 +4,7 @@
 
 <link rel="stylesheet" href="/files/css/gridstyle.css">
 <style>
- 	.claro .dojoxGridInvisible .dojoxGridCell 
+ 	.claro .dojoxGridInvisible .dojoxGridCell
  	{
 		outline: none;
 		padding : 0px !important;
@@ -12,7 +12,7 @@
 		word-wrap: break-word;
 		border-color: transparent #E5DAC8 #E5DAC8 transparent;
 	}
-	
+
     .div_cell
 	  {
 	    width : 50px;
@@ -39,18 +39,18 @@ var tipobj,op;
 function tooltip(el,txt) {
 tipobj=d.getElementById('mess');
 tipobj.innerHTML = txt;
-op = 0.1;  
+op = 0.1;
 tipobj.style.opacity = op;
 tipobj.style.visibility="visible";
 el.onmousemove=positiontip;
 appear();
 }
- 
+
 function hide_info(el) {
 d.getElementById('mess').style.visibility='hidden';
 el.onmousemove='';
 }
- 
+
 function ietruebody(){
 return (d.compatMode && d.compatMode!="BackCompat")? d.documentElement : d.body
 }
@@ -67,7 +67,7 @@ else tipobj.style.left=curX+"px";
 if (bottomedge < tipobj.offsetHeight) tipobj.style.top=curY-tipobj.offsetHeight-offsetfromcursorY+"px"
 else tipobj.style.top=curY+offsetfromcursorY+"px";
 }
- 
+
 function appear() {
 if(op < 1) {
 op += 0.1;
@@ -78,8 +78,8 @@ t = setTimeout('appear()', 30);
 }
 </script>
 
-<div style="position: absolute;border: solid #AAAAAA 1px;background-color: #DDDDDD;  
-font-family: Tahoma, sans-serif;font-size: 11px;line-height: 16px;  
+<div style="position: absolute;border: solid #AAAAAA 1px;background-color: #DDDDDD;
+font-family: Tahoma, sans-serif;font-size: 11px;line-height: 16px;
 padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 <h1><?=$TPL['STATTITLE']?></h1><br />
 
@@ -89,7 +89,7 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 <th rowpan="2"><div style="width:46px;padding : 5px;">№ п/п</div></th>
 <th rowpan="2"><div style="width:400px;">Мероприятие</div></th>
 <th colspan="12">Финансирование на текущий год (план)</th>
-</tr>  
+</tr>
 <tr>
 <th></th>
 <th></th>
@@ -111,8 +111,8 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
   // вывод самих значений в сформированную таблицу
   $d = $TPL['DATA'];
 /*  $crlf = "\r\n";
-        return '<!--' . $crlf . 
-                   print_r($d, true) . $crlf . 
+        return '<!--' . $crlf .
+                   print_r($d, true) . $crlf .
                '-->' . $crlf;
  */ $i=1;
   foreach ($d as $data_row)
@@ -122,20 +122,20 @@ padding: 2px 5px;visibility: hidden;margin: 25px 0px 0px 5px;" id="mess"></div>
 	  echo '<td>'.$data_row['id'].' '.$data_row['title'].'</td>'."\r\n";
 	  foreach ($data_row['sums'] as $m_data)
 	    {
-		  if ($m_data['value']!==0) echo "<td><div class=\"div_cell1\" 
-		  onmouseover=\"tooltip(this,'".$m_data['text']."')\" 
+		  if ($m_data['value']!==0) echo "<td><div class=\"div_cell1\"
+		  onmouseover=\"tooltip(this,'".$m_data['text']."')\"
 		  onmouseout=\"hide_info(this)\">".$m_data['value']."</div></td>\r\n";
 		  else echo "<td><div class=\"div_cell1\">".$m_data['value']."</div></td>\r\n";
 		}
-	  echo '</tr>'."\r\n";	
-	  $i++;	
+	  echo '</tr>'."\r\n";
+	  $i++;
 	}
 ?>
 
 </table>
 </div>
 <br />
-<div style="text-align: center;"><a href="#">Сформировать файл Excel</a></div>
+<div style="text-align: center;"><a href="/files/excel/finance_summa_detail.xls">Сформировать файл Excel</a></div>
 
 <?php
     include TPL_CMS."_footer.php";

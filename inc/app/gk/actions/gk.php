@@ -37,6 +37,7 @@
 		$row['e_mail']=$_REQUEST['e_mail'];
 		$row['phone']=$_REQUEST['phone'];
 		$row['id_org_ind']=$_REQUEST['id_org_ind'];
+		$row['matching_organization']=$_REQUEST['matching_organization'];
 		$sql=sql_placeholder('update ?#FK_GK set ?% where id=? ', $row, $gk_id);
 		if ($this->db->query($sql)) {
 			$_TPL['ERROR'][] = 'Данные сохранены';
